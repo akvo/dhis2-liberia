@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:developers.dhis2.org)",
+      "Bash(docker logs:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)"
+    ]
+  }
+}

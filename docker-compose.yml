@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgis/postgis:14-3.3-alpine
+    container_name: dhis2-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dhis2}
+      POSTGRES_USER: ${POSTGRES_USER:-dhis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dhis}
+    volumes:
+      - dhis2-db-data:/var/lib/postgresql/data
+    networks:
+      - dhis2-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dhis} -d ${POSTGRES_DB:-dhis2}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dhis2:
+    image: dhis2/core:2.40.4
+    container_name: dhis2-core
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${DHIS2_PORT:-8080}:8080"
+    environment:
+      JAVA_OPTS: "-Xms1g -Xmx4g"
+    volumes:
+      - ./dhis.conf:/opt/dhis2/dhis.conf:ro
+      - dhis2-home:/opt/dhis2/files
+    networks:
+      - dhis2-network
+
+volumes:
+  dhis2-db-data:
+  dhis2-home:
+
+networks:
+  dhis2-network:
+    driver: bridge

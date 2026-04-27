@@ -1,0 +1,16 @@
+name,short_name,code,level,parent_code
+Liberia,Liberia,LR,1,
+Montserrado County,Montserrado,LR_MON,2,LR
+Nimba County,Nimba,LR_NIM,2,LR
+Greater Monrovia District,Greater Monrovia,LR_MON_GM,3,LR_MON
+St. Paul River District,St. Paul River,LR_MON_SPR,3,LR_MON
+Sanniquellie-Mahn District,Sanniquellie-Mahn,LR_NIM_SM,3,LR_NIM
+Saclepea-Mahn District,Saclepea-Mahn,LR_NIM_SAC,3,LR_NIM
+Congo Town Clan,Congo Town,LR_MON_GM_CT,4,LR_MON_GM
+Paynesville Clan,Paynesville,LR_MON_GM_PV,4,LR_MON_GM
+Johnsonville Clan,Johnsonville,LR_MON_SPR_JV,4,LR_MON_SPR
+Gardnersville Clan,Gardnersville,LR_MON_SPR_GV,4,LR_MON_SPR
+Sanniquellie Clan,Sanniquellie,LR_NIM_SM_SQ,4,LR_NIM_SM
+Karnplay Clan,Karnplay,LR_NIM_SM_KP,4,LR_NIM_SM
+Saclepea Clan,Saclepea,LR_NIM_SAC_SC,4,LR_NIM_SAC
+Ganta Clan,Ganta,LR_NIM_SAC_GT,4,LR_NIM_SAC

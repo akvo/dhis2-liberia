@@ -1,0 +1,21 @@
+# Environment files with secrets
+.env
+
+# Database dumps
+*.sql
+*.sql.gz
+
+# Docker volumes (if local)
+data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
