@@ -1,0 +1,91 @@
+{
+  "attribute_codes": [
+    "SUNBIRD_OSID",
+    "WF_ID",
+    "SYNC_STATUS_ATTR",
+    "GEO_CODE",
+    "COUNTY",
+    "DISTRICT",
+    "COMMUNITY",
+    "WATER_POINT_TYPE_ATTR",
+    "EXTRACTION_TYPE_ATTR",
+    "PUMP_TYPE_ATTR",
+    "NUM_TAPS",
+    "HAS_DEPTH_INFO",
+    "DEPTH_METRES",
+    "INSTALLER",
+    "OWNER",
+    "FUNDER",
+    "PHOTO_URL"
+  ],
+  "field_mapping": {
+    "geoCode": "GEO_CODE",
+    "waterPointType": "WATER_POINT_TYPE_ATTR",
+    "extractionType": "EXTRACTION_TYPE_ATTR",
+    "pumpType": "PUMP_TYPE_ATTR",
+    "numTaps": "NUM_TAPS",
+    "hasDepthInfo": "HAS_DEPTH_INFO",
+    "depthMetres": "DEPTH_METRES",
+    "installer": "INSTALLER",
+    "owner": "OWNER",
+    "funder": "FUNDER",
+    "photoUrl": "PHOTO_URL",
+    "location.county": "COUNTY",
+    "location.district": "DISTRICT",
+    "location.community": "COMMUNITY"
+  },
+  "option_mappings": {
+    "WATER_POINT_TYPE_ATTR": {
+      "WATER_POINT_TYPE_PDW": "Protected dug well",
+      "WATER_POINT_TYPE_UDW": "Unprotected dug well",
+      "WATER_POINT_TYPE_TWB": "Tube well or borehole",
+      "WATER_POINT_TYPE_PS": "Protected spring",
+      "WATER_POINT_TYPE_US": "Unprotected spring",
+      "WATER_POINT_TYPE_PWD": "Piped water into dwelling/plot/yard",
+      "WATER_POINT_TYPE_PTS": "Public tap/standpipe",
+      "WATER_POINT_TYPE_UEB": "Unequipped borehole",
+      "WATER_POINT_TYPE_RWH": "Rainwater (harvesting)",
+      "WATER_POINT_TYPE_SSD": "Sand/Sub-surface dam",
+      "WATER_POINT_TYPE_OTH": "Other"
+    },
+    "EXTRACTION_TYPE_ATTR": {
+      "EXTRACTION_TYPE_MANUAL": "Manual",
+      "EXTRACTION_TYPE_ELECTRICAL": "Electrical",
+      "EXTRACTION_TYPE_SOLAR": "Solar",
+      "EXTRACTION_TYPE_OTHER": "Other"
+    },
+    "PUMP_TYPE_ATTR": {
+      "PUMP_TYPE_AFRIDEV": "Afridev",
+      "PUMP_TYPE_CONSALLEN": "Consallen",
+      "PUMP_TYPE_INDIA_MARK": "India Mark",
+      "PUMP_TYPE_KARDIA": "Kardia",
+      "PUMP_TYPE_ROPE_PUMP": "Rope pump",
+      "PUMP_TYPE_VERGNET": "Vergnet",
+      "PUMP_TYPE_OTHER": "Other"
+    },
+    "INSTALLER": {
+      "INSTALLER_TYPE_GOVERNMENT": "Government",
+      "INSTALLER_TYPE_NGO": "NGO",
+      "INSTALLER_TYPE_PRIVATE": "Private",
+      "INSTALLER_TYPE_OTHER": "Other"
+    },
+    "OWNER": {
+      "OWNER_TYPE_COMMUNITY": "Community",
+      "OWNER_TYPE_PRIVATE_INDIVIDUAL": "Private Individual",
+      "OWNER_TYPE_SCHOOL": "School",
+      "OWNER_TYPE_NGO": "NGO",
+      "OWNER_TYPE_HEALTH_FACILITY": "Health Facility",
+      "OWNER_TYPE_OTHER_INSTITUTION": "Other institution",
+      "OWNER_TYPE_CBO": "CBO",
+      "OWNER_TYPE_PRIVATE": "Private",
+      "OWNER_TYPE_UNKNOWN": "Unknown",
+      "OWNER_TYPE_OTHER": "Other"
+    }
+  },
+  "org_unit_fields": ["COUNTY", "DISTRICT", "COMMUNITY"],
+  "sync_status": {
+    "pending": "SYNC_STATUS_PENDING",
+    "synced": "SYNC_STATUS_SYNCED",
+    "failed": "SYNC_STATUS_FAILED"
+  }
+}

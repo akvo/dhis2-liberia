@@ -236,9 +236,11 @@ These fields start empty and are populated after Sunbird RC generates the IDs.
 | Name | County |
 | Short name | county |
 | Code | COUNTY |
-| Value type | Text |
+| Value type | Organisation Unit |
 | Aggregation type | None |
 | Searchable | ✓ Yes |
+
+> **Note:** Links to org unit hierarchy (Level 2). Value stored is the org unit UID.
 
 #### 2.6 District
 
@@ -247,9 +249,11 @@ These fields start empty and are populated after Sunbird RC generates the IDs.
 | Name | District |
 | Short name | district |
 | Code | DISTRICT |
-| Value type | Text |
+| Value type | Organisation Unit |
 | Aggregation type | None |
 | Searchable | ✓ Yes |
+
+> **Note:** Links to org unit hierarchy (Level 3). Value stored is the org unit UID.
 
 #### 2.7 Community
 
@@ -258,8 +262,10 @@ These fields start empty and are populated after Sunbird RC generates the IDs.
 | Name | Community |
 | Short name | community |
 | Code | COMMUNITY |
-| Value type | Text |
+| Value type | Organisation Unit |
 | Aggregation type | None |
+
+> **Note:** Links to org unit hierarchy (Level 4). Value stored is the org unit UID.
 
 ---
 
@@ -478,6 +484,29 @@ curl "http://localhost:9090/api/trackedEntityInstances?ou=<ORG_UNIT>&program=<PR
   -u admin:district
 ```
 
+### 1.1 Resolve Organisation Unit Names
+
+Since County, District, and Community are stored as org unit UIDs, the adapter must resolve them to names:
+
+```bash
+# Get org unit name from UID
+curl "http://localhost:9090/api/organisationUnits/<ORG_UNIT_UID>?fields=name" \
+  -u admin:district
+```
+
+**Response:**
+```json
+{
+  "name": "Montserrado County"
+}
+```
+
+Alternatively, fetch multiple org units in one call:
+```bash
+curl "http://localhost:9090/api/organisationUnits?filter=id:in:[UID1,UID2,UID3]&fields=id,name" \
+  -u admin:district
+```
+
 ### 2. Transform and Send to Sunbird RC
 
 ```json
@@ -538,26 +567,28 @@ curl -X PUT "http://localhost:9090/api/trackedEntityInstances/<TEI_ID>" \
 
 ## Field Mapping Reference
 
-| DHIS2 Attribute | Code | Sunbird RC Field | Direction |
-|-----------------|------|------------------|-----------|
-| Sunbird OSID | `SUNBIRD_OSID` | `osid` | ← From Sunbird |
-| Water Facility ID | `WF_ID` | `wfId` | ← From Sunbird |
-| Sync Status | `SYNC_STATUS_ATTR` | (internal) | DHIS2 only |
-| Geo Code | `GEO_CODE` | `geoCode` | → To Sunbird |
-| County | `COUNTY` | `location.county` | → To Sunbird |
-| District | `DISTRICT` | `location.district` | → To Sunbird |
-| Community | `COMMUNITY` | `location.community` | → To Sunbird |
-| (geometry) | - | `location.coordinates` | → To Sunbird |
-| Water Point Type | `WATER_POINT_TYPE_ATTR` | `waterPointType` | → To Sunbird |
-| Extraction Type | `EXTRACTION_TYPE_ATTR` | `extractionType` | → To Sunbird |
-| Pump Type | `PUMP_TYPE_ATTR` | `pumpType` | → To Sunbird |
-| Number of Taps | `NUM_TAPS` | `numTaps` | → To Sunbird |
-| Has Depth Info | `HAS_DEPTH_INFO` | `hasDepthInfo` | → To Sunbird |
-| Depth (metres) | `DEPTH_METRES` | `depthMetres` | → To Sunbird |
-| Installer | `INSTALLER` | `installer` | → To Sunbird |
-| Owner | `OWNER` | `owner` | → To Sunbird |
-| Funder | `FUNDER` | `funder` | → To Sunbird |
-| Photo URL | `PHOTO_URL` | `photoUrl` | → To Sunbird |
+| DHIS2 Attribute | Code | Value Type | Sunbird RC Field | Direction |
+|-----------------|------|------------|------------------|-----------|
+| Sunbird OSID | `SUNBIRD_OSID` | Text | `osid` | ← From Sunbird |
+| Water Facility ID | `WF_ID` | Text | `wfId` | ← From Sunbird |
+| Sync Status | `SYNC_STATUS_ATTR` | Text (Option) | (internal) | DHIS2 only |
+| Geo Code | `GEO_CODE` | Text | `geoCode` | → To Sunbird |
+| County | `COUNTY` | **Org Unit** | `location.county` | → To Sunbird * |
+| District | `DISTRICT` | **Org Unit** | `location.district` | → To Sunbird * |
+| Community | `COMMUNITY` | **Org Unit** | `location.community` | → To Sunbird * |
+| (geometry) | - | - | `location.coordinates` | → To Sunbird |
+| Water Point Type | `WATER_POINT_TYPE_ATTR` | Text (Option) | `waterPointType` | → To Sunbird |
+| Extraction Type | `EXTRACTION_TYPE_ATTR` | Text (Option) | `extractionType` | → To Sunbird |
+| Pump Type | `PUMP_TYPE_ATTR` | Text (Option) | `pumpType` | → To Sunbird |
+| Number of Taps | `NUM_TAPS` | Integer | `numTaps` | → To Sunbird |
+| Has Depth Info | `HAS_DEPTH_INFO` | Boolean | `hasDepthInfo` | → To Sunbird |
+| Depth (metres) | `DEPTH_METRES` | Number | `depthMetres` | → To Sunbird |
+| Installer | `INSTALLER` | Text (Option) | `installer` | → To Sunbird |
+| Owner | `OWNER` | Text (Option) | `owner` | → To Sunbird |
+| Funder | `FUNDER` | Text | `funder` | → To Sunbird |
+| Photo URL | `PHOTO_URL` | URL | `photoUrl` | → To Sunbird |
+
+> **\* Note:** County, District, and Community store org unit UIDs in DHIS2. The adapter must resolve these UIDs to names before sending to Sunbird RC.
 
 ---
 
@@ -569,11 +600,12 @@ curl -X PUT "http://localhost:9090/api/trackedEntityInstances/<TEI_ID>" \
 ├─────────────────────────────────────────────────────────────────┤
 │  1. Query DHIS2 for records where syncStatus = PENDING          │
 │  2. For each record:                                            │
-│     a. Transform DHIS2 data → Sunbird RC format                 │
-│     b. POST to Sunbird RC /api/v1/WaterFacility                 │
-│     c. Get osid from response                                   │
-│     d. GET /api/v1/WaterFacility/{osid} to fetch wfId           │
-│     e. PUT to DHIS2 with osid, wfId, syncStatus=SYNCED          │
+│     a. Resolve org unit UIDs to names (county/district/community)│
+│     b. Transform DHIS2 data → Sunbird RC format                 │
+│     c. POST to Sunbird RC /api/v1/WaterFacility                 │
+│     d. Get osid from response                                   │
+│     e. GET /api/v1/WaterFacility/{osid} to fetch wfId           │
+│     f. PUT to DHIS2 with osid, wfId, syncStatus=SYNCED          │
 │  3. Handle errors: set syncStatus=FAILED                        │
 └─────────────────────────────────────────────────────────────────┘
 ```
