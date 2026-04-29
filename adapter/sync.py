@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-DHIS2 ↔ Sunbird RC Integration Adapter
+DHIS2 to Sunbird RC Integration Adapter
 
 Syncs Water Facility records from DHIS2 to Sunbird RC:
 1. Fetches TEIs with syncStatus=PENDING from DHIS2
@@ -19,9 +19,11 @@ from pathlib import Path
 
 import requests
 
+
 # =============================================================================
 # Load .env file (from project root)
 # =============================================================================
+
 
 def load_env():
     """Load environment variables from .env file."""
@@ -34,11 +36,14 @@ def load_env():
                     key, value = line.split("=", 1)
                     os.environ.setdefault(key.strip(), value.strip())
 
+
 load_env()
+
 
 # =============================================================================
 # Load config from JSON file
 # =============================================================================
+
 
 def load_config():
     """Load configuration from config.json."""
@@ -47,6 +52,7 @@ def load_config():
         raise Exception(f"Config file not found: {config_path}")
     with open(config_path) as f:
         return json.load(f)
+
 
 CONFIG = load_config()
 
@@ -61,7 +67,10 @@ DHIS2_AUTH = (
 )
 
 SUNBIRD_URL = os.environ.get("SUNBIRD_URL", "http://localhost:8081/api/v1")
-KEYCLOAK_URL = os.environ.get("KEYCLOAK_URL", "http://keycloak:8080/auth/realms/sunbird-rc/protocol/openid-connect/token")
+KEYCLOAK_URL = os.environ.get(
+    "KEYCLOAK_URL",
+    "http://keycloak:8080/auth/realms/sunbird-rc/protocol/openid-connect/token"
+)
 CLIENT_ID = os.environ.get("SUNBIRD_CLIENT_ID", "demo-api")
 CLIENT_SECRET = os.environ.get("SUNBIRD_CLIENT_SECRET", "")
 
@@ -69,9 +78,34 @@ CLIENT_SECRET = os.environ.get("SUNBIRD_CLIENT_SECRET", "")
 # Configuration (from config.json)
 # =============================================================================
 
-ATTR_CODES_LIST = CONFIG["attribute_codes"]
+# Build attribute codes list from attributes
+ATTR_CODES_LIST = [attr["code"] for attr in CONFIG["attributes"]]
+
+
+# Build option mappings from option_sets
+# Maps attribute code -> {full_option_code: display_name}
+def build_option_mappings():
+    """Build option mappings for adapter from config option_sets."""
+    mappings = {}
+    # Create lookup: option_set_code -> attribute_code
+    attr_to_option_set = {}
+    for attr in CONFIG["attributes"]:
+        if "optionSetCode" in attr:
+            attr_to_option_set[attr["optionSetCode"]] = attr["code"]
+
+    for option_set in CONFIG["option_sets"]:
+        os_code = option_set["code"]
+        attr_code = attr_to_option_set.get(os_code)
+        if attr_code:
+            mappings[attr_code] = {}
+            for opt in option_set["options"]:
+                full_code = f"{os_code}_{opt['code']}"
+                mappings[attr_code][full_code] = opt["name"]
+    return mappings
+
+
 FIELD_MAPPING = CONFIG["field_mapping"]
-OPTION_MAPPINGS = CONFIG["option_mappings"]
+OPTION_MAPPINGS = build_option_mappings()
 ORG_UNIT_FIELDS = CONFIG["org_unit_fields"]
 SYNC_STATUS = CONFIG["sync_status"]
 
@@ -83,6 +117,7 @@ ATTR_CODES = {}
 
 # Cache for org unit names
 ORG_UNIT_CACHE = {}
+
 
 # =============================================================================
 # DHIS2 ID Fetching (Dynamic)
@@ -97,20 +132,25 @@ def fetch_dhis2_ids():
 
     # Fetch root org unit (level 1)
     response = requests.get(
-        f"{DHIS2_URL}/organisationUnits?filter=level:eq:1&fields=id,name&paging=false",
+        f"{DHIS2_URL}/organisationUnits"
+        f"?filter=level:eq:1&fields=id,name&paging=false",
         auth=DHIS2_AUTH,
         headers=headers,
     )
     if response.status_code != 200:
-        raise Exception(f"Failed to fetch root org unit: {response.status_code}")
+        raise Exception(
+            f"Failed to fetch root org unit: {response.status_code}"
+        )
     org_units = response.json().get("organisationUnits", [])
     if not org_units:
         raise Exception("No root organisation unit found")
     ROOT_OU_ID = org_units[0]["id"]
 
     # Fetch program by code
+    prog_code = CONFIG["program"]["code"]
     response = requests.get(
-        f"{DHIS2_URL}/programs?filter=code:eq:WF_REGISTRY&fields=id,name&paging=false",
+        f"{DHIS2_URL}/programs"
+        f"?filter=code:eq:{prog_code}&fields=id,name&paging=false",
         auth=DHIS2_AUTH,
         headers=headers,
     )
@@ -118,13 +158,17 @@ def fetch_dhis2_ids():
         raise Exception(f"Failed to fetch program: {response.status_code}")
     programs = response.json().get("programs", [])
     if not programs:
-        raise Exception("Program WF_REGISTRY not found. Run dhis2-water-facility-setup.ipynb first.")
+        raise Exception(
+            f"Program {prog_code} not found. "
+            "Run setup.py first."
+        )
     PROGRAM_ID = programs[0]["id"]
 
     # Fetch tracked entity attributes by codes
     codes_param = ",".join(ATTR_CODES_LIST)
     response = requests.get(
-        f"{DHIS2_URL}/trackedEntityAttributes?filter=code:in:[{codes_param}]&fields=id,code&paging=false",
+        f"{DHIS2_URL}/trackedEntityAttributes"
+        f"?filter=code:in:[{codes_param}]&fields=id,code&paging=false",
         auth=DHIS2_AUTH,
         headers=headers,
     )
@@ -138,7 +182,9 @@ def fetch_dhis2_ids():
     # Verify all required attributes exist
     missing = [code for code in ATTR_CODES_LIST if code not in ATTR_IDS]
     if missing:
-        raise Exception(f"Missing attributes: {missing}. Run dhis2-water-facility-setup.ipynb first.")
+        raise Exception(
+            f"Missing attributes: {missing}. Run setup.py first."
+        )
 
     return True
 
@@ -163,7 +209,10 @@ def dhis2_put(endpoint, data):
     response = requests.put(
         url,
         auth=DHIS2_AUTH,
-        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
         json=data,
     )
     return response
@@ -218,7 +267,9 @@ def get_sunbird_token():
     response = requests.post(KEYCLOAK_URL, data=data)
     if response.status_code == 200:
         return response.json().get("access_token")
-    raise Exception(f"Failed to get Sunbird token: {response.status_code} {response.text}")
+    raise Exception(
+        f"Failed to get Sunbird token: {response.status_code} {response.text}"
+    )
 
 
 def sunbird_post(endpoint, data, token):
@@ -263,7 +314,9 @@ def fetch_pending_teis():
     )
     response = dhis2_get(endpoint)
     if response.status_code != 200:
-        raise Exception(f"Failed to fetch TEIs: {response.status_code} {response.text}")
+        raise Exception(
+            f"Failed to fetch TEIs: {response.status_code} {response.text}"
+        )
 
     data = response.json()
     teis = data.get("trackedEntityInstances", [])
@@ -295,18 +348,25 @@ def transform_tei_to_sunbird(tei):
 
     # Map option codes to display names (using config)
     water_point_type = option_code_to_name(
-        get_attribute_value(tei, "WATER_POINT_TYPE_ATTR"), "WATER_POINT_TYPE_ATTR"
+        get_attribute_value(tei, "WATER_POINT_TYPE_ATTR"),
+        "WATER_POINT_TYPE_ATTR"
     )
     extraction_type = option_code_to_name(
-        get_attribute_value(tei, "EXTRACTION_TYPE_ATTR"), "EXTRACTION_TYPE_ATTR"
+        get_attribute_value(tei, "EXTRACTION_TYPE_ATTR"),
+        "EXTRACTION_TYPE_ATTR"
     )
     pump_type = option_code_to_name(
-        get_attribute_value(tei, "PUMP_TYPE_ATTR"), "PUMP_TYPE_ATTR"
+        get_attribute_value(tei, "PUMP_TYPE_ATTR"),
+        "PUMP_TYPE_ATTR"
     )
     installer = option_code_to_name(
-        get_attribute_value(tei, "INSTALLER"), "INSTALLER"
+        get_attribute_value(tei, "INSTALLER"),
+        "INSTALLER"
     )
-    owner = option_code_to_name(get_attribute_value(tei, "OWNER"), "OWNER")
+    owner = option_code_to_name(
+        get_attribute_value(tei, "OWNER"),
+        "OWNER"
+    )
 
     # Get other fields
     num_taps = get_attribute_value(tei, "NUM_TAPS")
@@ -355,10 +415,11 @@ def transform_tei_to_sunbird(tei):
 
 def update_tei_with_ids(tei_id, osid, wf_id, org_unit_id):
     """Update DHIS2 TEI with Sunbird RC generated IDs."""
+    synced_status = SYNC_STATUS["synced"]
     attributes = [
         {"attribute": ATTR_IDS["SUNBIRD_OSID"], "value": osid},
         {"attribute": ATTR_IDS["WF_ID"], "value": wf_id},
-        {"attribute": ATTR_IDS["SYNC_STATUS_ATTR"], "value": SYNC_STATUS["synced"]},
+        {"attribute": ATTR_IDS["SYNC_STATUS_ATTR"], "value": synced_status},
     ]
 
     payload = {"orgUnit": org_unit_id, "attributes": attributes}
@@ -370,7 +431,10 @@ def update_tei_with_ids(tei_id, osid, wf_id, org_unit_id):
 def set_tei_failed(tei_id, org_unit_id):
     """Set TEI syncStatus to FAILED."""
     attributes = [
-        {"attribute": ATTR_IDS["SYNC_STATUS_ATTR"], "value": SYNC_STATUS["failed"]},
+        {
+            "attribute": ATTR_IDS["SYNC_STATUS_ATTR"],
+            "value": SYNC_STATUS["failed"]
+        },
     ]
 
     payload = {"orgUnit": org_unit_id, "attributes": attributes}
@@ -403,7 +467,7 @@ def sync_tei(tei, token):
     osid = result.get("result", {}).get("WaterFacility", {}).get("osid")
 
     if not osid:
-        print(f"    FAILED: No osid in response")
+        print("    FAILED: No osid in response")
         set_tei_failed(tei_id, org_unit_id)
         return False
 
@@ -411,7 +475,9 @@ def sync_tei(tei, token):
     get_response = sunbird_get(f"WaterFacility/{osid}", token)
 
     if get_response.status_code != 200:
-        print(f"    FAILED: Could not fetch created record: {get_response.status_code}")
+        print(
+            f"    FAILED: Could not fetch record: {get_response.status_code}"
+        )
         set_tei_failed(tei_id, org_unit_id)
         return False
 
@@ -419,7 +485,7 @@ def sync_tei(tei, token):
     wf_id = facility.get("wfId")
 
     if not wf_id:
-        print(f"    WARNING: No wfId in Sunbird RC response")
+        print("    WARNING: No wfId in Sunbird RC response")
         wf_id = ""  # Use empty string if not generated
 
     # Update DHIS2 with IDs
@@ -427,15 +493,15 @@ def sync_tei(tei, token):
         print(f"    SUCCESS: osid={osid}, wfId={wf_id}")
         return True
     else:
-        print(f"    FAILED: Could not update DHIS2")
+        print("    FAILED: Could not update DHIS2")
         return False
 
 
 def run_sync():
     """Main sync function."""
     print("=" * 60)
-    print("DHIS2 → Sunbird RC Sync")
-    print(f"Started: {datetime.now().isoformat()}")
+    print("DHIS2 -> Sunbird RC Sync")
+    print("Started:", datetime.now().isoformat())
     print("=" * 60)
 
     # Fetch DHIS2 IDs dynamically
@@ -489,7 +555,7 @@ def run_sync():
     print(f"  Total processed: {len(teis)}")
     print(f"  Successful: {success_count}")
     print(f"  Failed: {fail_count}")
-    print(f"Finished: {datetime.now().isoformat()}")
+    print("Finished:", datetime.now().isoformat())
 
 
 # =============================================================================
@@ -524,7 +590,7 @@ def test_dhis2():
         # Show first TEI details if any
         if teis:
             tei = teis[0]
-            print(f"\n  Sample TEI:")
+            print("\n  Sample TEI:")
             print(f"    ID: {tei.get('trackedEntityInstance')}")
             print(f"    GeoCode: {get_attribute_value(tei, 'GEO_CODE')}")
             print(f"    County UID: {get_attribute_value(tei, 'COUNTY')}")
@@ -556,6 +622,7 @@ def test_sunbird():
 # =============================================================================
 # Main
 # =============================================================================
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

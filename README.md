@@ -17,35 +17,32 @@ Services:
 
 ### 2. Configure Environment
 
-Copy `.env.example` to `.env` and update credentials:
-
 ```bash
 cp .env.example .env
+# Edit .env with your credentials
 ```
 
-### 3. Setup DHIS2 Water Facility Program
-
-Run the setup notebook to create the Water Facility program, tracked entity type, and attributes:
+### 3. Setup DHIS2
 
 ```bash
-cd notebooks
-jupyter notebook dhis2-water-facility-setup.ipynb
+python adapter/setup.py
 ```
 
-### 4. Run the Sync Adapter
+This creates:
+- Option sets (Water Point Type, Extraction Type, etc.)
+- Tracked entity attributes
+- Water Facility tracked entity type
+- Water Facility Registry program
+- Organisation units (from org_units_sample.csv)
+- Test facility with syncStatus=PENDING
 
-**Create a test facility:**
-```bash
-python adapter/create_facility.py
-```
+### 4. Run Sync
 
-**Run sync:**
 ```bash
+# Sync pending facilities to Sunbird RC
 python adapter/sync.py
-```
 
-**Test connections:**
-```bash
+# Test connections
 python adapter/sync.py --test-dhis2
 python adapter/sync.py --test-sunbird
 ```
@@ -54,19 +51,40 @@ python adapter/sync.py --test-sunbird
 
 ```
 .
-├── adapter/                    # Sync adapter scripts
-│   ├── sync.py                 # Main sync script
-│   ├── create_facility.py      # Create test TEI
-│   └── config.json             # Field & option mappings
-├── notebooks/                  # Jupyter notebooks
-│   ├── dhis2-water-facility-setup.ipynb
-│   └── dhis2-sunbird-adapter.ipynb
-├── docs/                       # Documentation
-│   ├── DHIS2_WATER_FACILITY_SETUP.md
-│   └── DHIS2_SUNBIRD_ADAPTER_PLAN.md
-├── docker-compose.yml          # Docker services
-├── .env                        # Environment config (not in git)
-└── .env.example                # Example environment config
+├── adapter/
+│   ├── config.json         # Single source of truth for all config
+│   ├── setup.py            # DHIS2 setup script
+│   ├── sync.py             # DHIS2 ↔ Sunbird RC sync
+│   └── create_facility.py  # Create test TEI
+├── docs/                   # Documentation
+├── docker-compose.yml
+├── org_units_sample.csv    # Sample org units
+├── .env                    # Environment config
+└── .env.example
+```
+
+## Configuration
+
+All configuration is in `adapter/config.json`:
+
+- **option_sets**: Dropdown options (Water Point Type, Pump Type, etc.)
+- **attributes**: Tracked entity attributes with types and option set links
+- **field_mapping**: DHIS2 → Sunbird RC field mapping
+- **sync_status**: Status values (PENDING, SYNCED, FAILED)
+- **program**: Program metadata
+- **tracked_entity_type**: TE type metadata
+
+Environment variables in `.env`:
+
+```bash
+DHIS2_URL=http://localhost:9090/api
+DHIS2_USERNAME=admin
+DHIS2_PASSWORD=district
+
+SUNBIRD_URL=http://localhost:8081/api/v1
+KEYCLOAK_URL=http://keycloak:8080/auth/realms/sunbird-rc/protocol/openid-connect/token
+SUNBIRD_CLIENT_ID=demo-api
+SUNBIRD_CLIENT_SECRET=your-secret-here
 ```
 
 ## How It Works
@@ -75,53 +93,21 @@ python adapter/sync.py --test-sunbird
 DHIS2 (TEI with syncStatus=PENDING)
          │
          ▼
-      Adapter Script
+      adapter/sync.py
          │
-         ├─ 1. Fetch pending records from DHIS2
-         ├─ 2. Resolve org unit UIDs → names
-         ├─ 3. Transform to Sunbird RC format
-         ├─ 4. POST to Sunbird RC /api/v1/WaterFacility
-         ├─ 5. GET generated osid & wfId
-         └─ 6. Update DHIS2 with IDs + syncStatus=SYNCED
+         ├─ Fetch pending records
+         ├─ Resolve org unit UIDs → names
+         ├─ Transform to Sunbird RC format
+         ├─ POST to Sunbird RC
+         ├─ Get osid & wfId
+         └─ Update DHIS2 (syncStatus=SYNCED)
          │
          ▼
-DHIS2 (Updated with osid, wfId, syncStatus=SYNCED)
-```
-
-## Configuration
-
-All configuration is stored in external files:
-
-| File | Purpose |
-|------|---------|
-| `.env` | URLs and credentials (DHIS2, Sunbird RC, Keycloak) |
-| `adapter/config.json` | Attribute codes, field mappings, option value mappings |
-
-### Environment Variables (.env)
-
-```bash
-# DHIS2
-DHIS2_URL=http://localhost:9090/api
-DHIS2_USERNAME=admin
-DHIS2_PASSWORD=district
-
-# Sunbird RC
-SUNBIRD_URL=http://localhost:8081/api/v1
-KEYCLOAK_URL=http://keycloak:8080/auth/realms/sunbird-rc/protocol/openid-connect/token
-SUNBIRD_CLIENT_ID=demo-api
-SUNBIRD_CLIENT_SECRET=your-secret-here
+DHIS2 (osid, wfId, syncStatus=SYNCED)
 ```
 
 ## Requirements
 
 - Python 3.x
 - Docker & Docker Compose
-- Python packages: `requests`, `pandas` (for notebooks)
-
-## Sync Status Values
-
-| Status | Description |
-|--------|-------------|
-| `SYNC_STATUS_PENDING` | Ready to sync to Sunbird RC |
-| `SYNC_STATUS_SYNCED` | Successfully synced |
-| `SYNC_STATUS_FAILED` | Sync failed (retry with adapter) |
+- Python packages: `requests`, `pandas`
