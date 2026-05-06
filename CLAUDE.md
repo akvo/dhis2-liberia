@@ -35,10 +35,11 @@ dhis2-liberia/
 - [x] App scaffold created
 - [x] Icon configured (public/dhis2-app-icon.png, 48x48)
 - [x] Build/deploy scripts (build.sh, dev.sh)
-- [ ] Phase 1: Navigation, pages, DataStore hooks
-- [ ] Phase 2: Settings page (Route configuration)
-- [ ] Phase 3: Sync page (pending TEIs, sync trigger)
-- [ ] Phase 4: Dashboard & History
+- [x] Phase 1: Navigation, pages, DataStore hooks
+- [x] Phase 2: Settings page (Sunbird RC/Keycloak OAuth config)
+- [x] Phase 3: Sync page UI (pending TEIs table, sync buttons)
+- [ ] Phase 3: Actual sync logic (blocked by CORS - see issue #1)
+- [x] Phase 4: Dashboard & History (shows real TEI stats)
 
 ### Build & Deploy
 ```bash
