@@ -114,19 +114,20 @@ const Sync: FC<SyncProps> = ({
                     <Button
                         primary
                         onClick={handleSync}
-                        disabled={true}
-                        title={i18n.t('Browser sync disabled - use CLI')}
+                        disabled={syncing || pendingCount === 0}
                     >
-                        {i18n.t('Sync ({{count}} pending)', { count: pendingCount })}
+                        {syncing
+                            ? i18n.t('Syncing...')
+                            : selectedIds.length > 0
+                              ? i18n.t('Sync Selected ({{count}})', {
+                                    count: selectedIds.length,
+                                })
+                              : i18n.t('Sync All Pending ({{count}})', {
+                                    count: pendingCount,
+                                })}
                     </Button>
                 </div>
             </div>
-
-            <NoticeBox title={i18n.t('Manual Sync Required')}>
-                {i18n.t('Due to browser security restrictions, sync must be run from the command line:')}
-                <pre className={classes.codeBlock}>python3 adapter/sync.py</pre>
-                {i18n.t('Contact your DevOps team to enable browser-based sync (CORS configuration).')}
-            </NoticeBox>
 
             {syncing && (
                 <div className={classes.progressContainer}>
