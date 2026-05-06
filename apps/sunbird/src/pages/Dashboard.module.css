@@ -1,0 +1,50 @@
+.container {
+    padding: 16px;
+}
+
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.warningCard {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.statCard {
+    min-height: 120px;
+}
+
+.cardContent {
+    padding: 16px;
+}
+
+.statHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--colors-grey700);
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.statValue {
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--colors-grey900);
+}
+
+.statTime {
+    font-size: 16px;
+    color: var(--colors-grey800);
+}

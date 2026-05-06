@@ -5,44 +5,197 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-05-06T10:58:54.176Z\n"
-"PO-Revision-Date: 2026-05-06T10:58:54.176Z\n"
-
-msgid "ERROR"
-msgstr "ERROR"
-
-msgid "Loading..."
-msgstr "Loading..."
-
-msgid "Hello {{name}}"
-msgstr "Hello {{name}}"
-
-msgid "Welcome to Sunbird!"
-msgstr "Welcome to Sunbird!"
-
-msgid "Root Organisation Units"
-msgstr "Root Organisation Units"
+"POT-Creation-Date: 2026-05-06T12:06:01.997Z\n"
+"PO-Revision-Date: 2026-05-06T12:06:01.997Z\n"
 
 msgid "Error"
 msgstr "Error"
 
-msgid "Error loading the data elements"
-msgstr "Error loading the data elements"
+msgid "Dashboard"
+msgstr "Dashboard"
 
-msgid "ID"
-msgstr "ID"
+msgid "Sync"
+msgstr "Sync"
+
+msgid "History"
+msgstr "History"
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Configuration Required"
+msgstr "Configuration Required"
+
+msgid "Please configure the Sunbird RC connection in Settings before syncing."
+msgstr "Please configure the Sunbird RC connection in Settings before syncing."
+
+msgid "Sync Overview"
+msgstr "Sync Overview"
+
+msgid "Total Synced"
+msgstr "Total Synced"
+
+msgid "Pending"
+msgstr "Pending"
+
+msgid "Errors"
+msgstr "Errors"
+
+msgid "Last Sync"
+msgstr "Last Sync"
+
+msgid "Never"
+msgstr "Never"
+
+msgid "Success"
+msgstr "Success"
+
+msgid "Partial"
+msgstr "Partial"
+
+msgid "Failed"
+msgstr "Failed"
+
+msgid "Sync History"
+msgstr "Sync History"
+
+msgid "Clear History"
+msgstr "Clear History"
+
+msgid "No sync history available."
+msgstr "No sync history available."
+
+msgid "Timestamp"
+msgstr "Timestamp"
+
+msgid "Records"
+msgstr "Records"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Hide"
+msgstr "Hide"
+
+msgid "View"
+msgstr "View"
+
+msgid "Please fill in all connection fields before testing"
+msgstr "Please fill in all connection fields before testing"
+
+msgid "Sunbird URL is required"
+msgstr "Sunbird URL is required"
+
+msgid "Keycloak URL is required"
+msgstr "Keycloak URL is required"
+
+msgid "Client ID is required"
+msgstr "Client ID is required"
+
+msgid "Client Secret is required"
+msgstr "Client Secret is required"
+
+msgid "Entity Type is required"
+msgstr "Entity Type is required"
+
+msgid "Program is required"
+msgstr "Program is required"
+
+msgid "Sunbird RC Settings"
+msgstr "Sunbird RC Settings"
+
+msgid "Validation Error"
+msgstr "Validation Error"
+
+msgid "Sunbird RC Base URL"
+msgstr "Sunbird RC Base URL"
+
+msgid "The base URL of your Sunbird RC instance"
+msgstr "The base URL of your Sunbird RC instance"
+
+msgid "Keycloak Token URL"
+msgstr "Keycloak Token URL"
+
+msgid "The Keycloak OAuth2 token endpoint URL"
+msgstr "The Keycloak OAuth2 token endpoint URL"
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "OAuth2 client ID for Sunbird RC authentication"
+msgstr "OAuth2 client ID for Sunbird RC authentication"
+
+msgid "Client Secret"
+msgstr "Client Secret"
+
+msgid "OAuth2 client secret for Sunbird RC authentication"
+msgstr "OAuth2 client secret for Sunbird RC authentication"
+
+msgid "Sunbird Entity Type"
+msgstr "Sunbird Entity Type"
+
+msgid "The entity type in Sunbird RC (e.g., WaterFacility, Student)"
+msgstr "The entity type in Sunbird RC (e.g., WaterFacility, Student)"
+
+msgid "Testing..."
+msgstr "Testing..."
+
+msgid "Test Connection"
+msgstr "Test Connection"
+
+msgid "Connection Failed"
+msgstr "Connection Failed"
+
+msgid "DHIS2 Program"
+msgstr "DHIS2 Program"
+
+msgid "Select a program"
+msgstr "Select a program"
+
+msgid "Saving..."
+msgstr "Saving..."
+
+msgid "Save Settings"
+msgstr "Save Settings"
+
+msgid "Synced"
+msgstr "Synced"
+
+msgid "Loading tracked entities..."
+msgstr "Loading tracked entities..."
+
+msgid "Sync to Sunbird RC"
+msgstr "Sync to Sunbird RC"
+
+msgid "Refresh"
+msgstr "Refresh"
+
+msgid "Browser sync disabled - use CLI"
+msgstr "Browser sync disabled - use CLI"
+
+msgid "Manual Sync Required"
+msgstr "Manual Sync Required"
+
+msgid "Contact your DevOps team to enable browser-based sync (CORS configuration)."
+msgstr "Contact your DevOps team to enable browser-based sync (CORS configuration)."
+
+msgid "Syncing records to Sunbird RC..."
+msgstr "Syncing records to Sunbird RC..."
+
+msgid "No tracked entities found for the configured program."
+msgstr "No tracked entities found for the configured program."
 
 msgid "Name"
 msgstr "Name"
 
-msgid "Domain"
-msgstr "Domain"
+msgid "Organisation Unit"
+msgstr "Organisation Unit"
 
-msgid "Value Type"
-msgstr "Value Type"
-
-msgid "Created by"
-msgstr "Created by"
+msgid "Last Updated"
+msgstr "Last Updated"
 
 msgctxt "Application title"
 msgid "__MANIFEST_APP_TITLE"
@@ -50,4 +203,4 @@ msgstr "Sunbird"
 
 msgctxt "Application description"
 msgid "__MANIFEST_APP_DESCRIPTION"
-msgstr ""
+msgstr "Sync management between DHIS2 and Sunbird RC"

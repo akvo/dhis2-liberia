@@ -1,0 +1,44 @@
+.container {
+    padding: 16px;
+    max-width: 800px;
+}
+
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.formCard {
+    margin-top: 16px;
+}
+
+.form {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.testConnectionSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: var(--colors-grey050);
+    border-radius: 4px;
+}
+
+.testDetails {
+    font-size: 12px;
+    color: var(--colors-grey700);
+    margin: 4px 0 0 0;
+    word-break: break-word;
+}
+
+.buttonContainer {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+}

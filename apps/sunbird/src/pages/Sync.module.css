@@ -1,0 +1,66 @@
+.container {
+    padding: 16px;
+}
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    gap: 16px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.header h2 {
+    margin: 0;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.progressContainer {
+    margin-bottom: 16px;
+    padding: 16px;
+    background: var(--colors-grey100);
+    border-radius: 4px;
+}
+
+.progressContainer p {
+    margin: 8px 0 0 0;
+    color: var(--colors-grey700);
+    font-size: 14px;
+}
+
+.emptyState {
+    padding: 48px;
+    text-align: center;
+    color: var(--colors-grey600);
+}
+
+.errorText {
+    display: block;
+    font-size: 12px;
+    color: var(--colors-red700);
+    margin-top: 4px;
+}
+
+.codeBlock {
+    background: var(--colors-grey200);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+    margin: 8px 0;
+    overflow-x: auto;
+}

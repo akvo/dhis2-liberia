@@ -1,0 +1,7 @@
+.container {
+    background: var(--colors-white);
+    border-bottom: 1px solid var(--colors-grey300);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
