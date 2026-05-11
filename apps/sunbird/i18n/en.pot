@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-05-06T12:06:01.997Z\n"
-"PO-Revision-Date: 2026-05-06T12:06:01.997Z\n"
+"POT-Creation-Date: 2026-05-11T02:12:24.966Z\n"
+"PO-Revision-Date: 2026-05-11T02:12:24.967Z\n"
 
 msgid "Error"
 msgstr "Error"
@@ -59,6 +59,9 @@ msgstr "Failed"
 msgid "Sync History"
 msgstr "Sync History"
 
+msgid "Refresh"
+msgstr "Refresh"
+
 msgid "Clear History"
 msgstr "Clear History"
 
@@ -107,20 +110,23 @@ msgstr "Program is required"
 msgid "Sunbird RC Settings"
 msgstr "Sunbird RC Settings"
 
+msgid "Worker-Based Sync"
+msgstr "Worker-Based Sync"
+
 msgid "Validation Error"
 msgstr "Validation Error"
 
 msgid "Sunbird RC Base URL"
 msgstr "Sunbird RC Base URL"
 
-msgid "The base URL of your Sunbird RC instance"
-msgstr "The base URL of your Sunbird RC instance"
+msgid "Base URL of Sunbird RC (must be accessible from the worker server)"
+msgstr "Base URL of Sunbird RC (must be accessible from the worker server)"
 
 msgid "Keycloak Token URL"
 msgstr "Keycloak Token URL"
 
-msgid "The Keycloak OAuth2 token endpoint URL"
-msgstr "The Keycloak OAuth2 token endpoint URL"
+msgid "Keycloak token endpoint (must be accessible from the worker server)"
+msgstr "Keycloak token endpoint (must be accessible from the worker server)"
 
 msgid "Client ID"
 msgstr "Client ID"
@@ -143,8 +149,8 @@ msgstr "The entity type in Sunbird RC (e.g., WaterFacility, Student)"
 msgid "Testing..."
 msgstr "Testing..."
 
-msgid "Test Connection"
-msgstr "Test Connection"
+msgid "Test Connection (Browser)"
+msgstr "Test Connection (Browser)"
 
 msgid "Connection Failed"
 msgstr "Connection Failed"
@@ -170,20 +176,23 @@ msgstr "Loading tracked entities..."
 msgid "Sync to Sunbird RC"
 msgstr "Sync to Sunbird RC"
 
-msgid "Refresh"
-msgstr "Refresh"
+msgid "Syncing..."
+msgstr "Syncing..."
 
-msgid "Browser sync disabled - use CLI"
-msgstr "Browser sync disabled - use CLI"
+msgid "Queuing sync request..."
+msgstr "Queuing sync request..."
 
-msgid "Manual Sync Required"
-msgstr "Manual Sync Required"
+msgid "How Sync Works"
+msgstr "How Sync Works"
 
-msgid "Contact your DevOps team to enable browser-based sync (CORS configuration)."
-msgstr "Contact your DevOps team to enable browser-based sync (CORS configuration)."
-
-msgid "Syncing records to Sunbird RC..."
-msgstr "Syncing records to Sunbird RC..."
+msgid ""
+"When you click Sync, a request is queued. The background worker service "
+"processes the queue and syncs records to Sunbird RC. Check the History page "
+"for results."
+msgstr ""
+"When you click Sync, a request is queued. The background worker service "
+"processes the queue and syncs records to Sunbird RC. Check the History page "
+"for results."
 
 msgid "No tracked entities found for the configured program."
 msgstr "No tracked entities found for the configured program."

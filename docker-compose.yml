@@ -36,6 +36,21 @@ services:
     networks:
       - dhis2-network
 
+  sunbird-worker:
+    build: ./adapter
+    container_name: sunbird-worker
+    restart: unless-stopped
+    depends_on:
+      - dhis2
+    environment:
+      DHIS2_URL: http://dhis2-core:8080/api
+      DHIS2_USERNAME: ${DHIS2_USERNAME:-admin}
+      DHIS2_PASSWORD: ${DHIS2_PASSWORD:-district}
+      POLL_INTERVAL: ${POLL_INTERVAL:-5}
+    networks:
+      - dhis2-network
+      - sunbird-rc-network
+
 volumes:
   dhis2-db-data:
   dhis2-home:
@@ -43,3 +58,6 @@ volumes:
 networks:
   dhis2-network:
     driver: bridge
+  sunbird-rc-network:
+    external: true
+    name: sunbird-rc-core_default

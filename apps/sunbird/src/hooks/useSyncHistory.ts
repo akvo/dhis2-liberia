@@ -5,10 +5,26 @@ import type { SyncLogEntry } from '@/pages/History'
 const HISTORY_KEY = 'history'
 const NAMESPACE = 'sunbird-sync'
 
+// Worker writes entries in this format
+interface WorkerEntry {
+    requestId: string
+    type: string
+    success: boolean
+    total: number
+    synced: number
+    failed: number
+    errors: Array<{ teiId?: string; error: string }>
+    startedAt: string
+    finishedAt: string
+}
+
+interface HistoryData {
+    entries?: WorkerEntry[]
+    logs?: SyncLogEntry[]
+}
+
 interface DataStoreValue {
-    dataStore: {
-        logs: SyncLogEntry[]
-    }
+    dataStore: HistoryData
 }
 
 const historyQuery = {
@@ -17,85 +33,77 @@ const historyQuery = {
     },
 }
 
-const createHistoryMutation = {
-    resource: `dataStore/${NAMESPACE}/${HISTORY_KEY}`,
-    type: 'create' as const,
-    data: ({ logs }: { logs: SyncLogEntry[] }) => ({ logs }),
-}
-
 const updateHistoryMutation = {
     resource: `dataStore/${NAMESPACE}/${HISTORY_KEY}`,
     type: 'update' as const,
-    data: ({ logs }: { logs: SyncLogEntry[] }) => ({ logs }),
+    data: ({ history }: { history: HistoryData }) => history,
+}
+
+// Convert worker entry to app log format
+function workerEntryToLog(entry: WorkerEntry): SyncLogEntry {
+    return {
+        id: entry.requestId,
+        timestamp: entry.finishedAt || entry.startedAt,
+        recordCount: entry.total,
+        successCount: entry.synced,
+        errorCount: entry.failed,
+        status: entry.success ? 'success' : 'failed',
+        details: entry.errors?.length > 0
+            ? entry.errors.map(e => e.error).join('; ')
+            : undefined,
+    }
 }
 
 interface UseSyncHistoryResult {
     logs: SyncLogEntry[]
     loading: boolean
-    addLog: (entry: Omit<SyncLogEntry, 'id'>) => Promise<void>
+    refetchHistory: () => void
     clearHistory: () => Promise<void>
 }
 
 export const useSyncHistory = (): UseSyncHistoryResult => {
     const [logs, setLogs] = useState<SyncLogEntry[]>([])
-    const [exists, setExists] = useState(false)
+    const [historyData, setHistoryData] = useState<HistoryData | null>(null)
 
     const { loading, refetch } = useDataQuery<DataStoreValue>(historyQuery, {
         onComplete: (data) => {
-            const historyData = data.dataStore as unknown as { logs: SyncLogEntry[] }
-            setLogs(historyData.logs || [])
-            setExists(true)
+            const history = data.dataStore as unknown as HistoryData
+            setHistoryData(history)
+
+            // Merge worker entries with any existing logs
+            const workerLogs = (history.entries || []).map(workerEntryToLog)
+            // Sort by timestamp, most recent first
+            workerLogs.sort((a, b) =>
+                new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            )
+            setLogs(workerLogs)
         },
         onError: (err) => {
             if ((err as any).details?.httpStatusCode === 404) {
-                setExists(false)
+                setHistoryData(null)
                 setLogs([])
             }
         },
     })
 
-    const [createMutation] = useDataMutation(createHistoryMutation, {
-        onComplete: () => {
-            setExists(true)
-            refetch()
-        },
-    })
+    const [updateMutation] = useDataMutation(updateHistoryMutation)
 
-    const [updateMutation] = useDataMutation(updateHistoryMutation, {
-        onComplete: () => {
-            refetch()
-        },
-    })
-
-    const addLog = useCallback(
-        async (entry: Omit<SyncLogEntry, 'id'>) => {
-            const newLog: SyncLogEntry = {
-                ...entry,
-                id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            }
-            const newLogs = [newLog, ...logs].slice(0, 100) // Keep last 100 entries
-
-            if (exists) {
-                await updateMutation({ logs: newLogs })
-            } else {
-                await createMutation({ logs: newLogs })
-            }
-            setLogs(newLogs)
-        },
-        [exists, logs, createMutation, updateMutation]
-    )
+    const refetchHistory = useCallback(() => {
+        refetch()
+    }, [refetch])
 
     const clearHistory = useCallback(async () => {
-        if (exists) {
-            await updateMutation({ logs: [] })
+        if (historyData) {
+            await updateMutation({ history: { entries: [], logs: [] } })
+            refetch()
         }
         setLogs([])
-    }, [exists, updateMutation])
+    }, [historyData, updateMutation, refetch])
 
     return {
         logs,
         loading,
-        addLog,
+        refetchHistory,
         clearHistory,
     }
 }

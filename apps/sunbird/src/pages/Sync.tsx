@@ -132,9 +132,15 @@ const Sync: FC<SyncProps> = ({
             {syncing && (
                 <div className={classes.progressContainer}>
                     <LinearLoader />
-                    <p>{i18n.t('Syncing records to Sunbird RC...')}</p>
+                    <p>{i18n.t('Queuing sync request...')}</p>
                 </div>
             )}
+
+            <NoticeBox title={i18n.t('How Sync Works')}>
+                {i18n.t(
+                    'When you click Sync, a request is queued. The background worker service processes the queue and syncs records to Sunbird RC. Check the History page for results.'
+                )}
+            </NoticeBox>
 
             {records.length === 0 ? (
                 <Card>

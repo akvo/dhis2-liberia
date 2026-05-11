@@ -21,7 +21,7 @@ export interface SyncLogEntry {
     recordCount: number
     successCount: number
     errorCount: number
-    status: 'success' | 'partial' | 'failed'
+    status: 'success' | 'partial' | 'failed' | 'pending'
     details?: string
 }
 
@@ -33,6 +33,7 @@ interface HistoryProps {
     pageSize?: number
     onPageChange: (page: number) => void
     onClearHistory: () => void
+    onRefresh?: () => void
 }
 
 const History: FC<HistoryProps> = ({
@@ -43,6 +44,7 @@ const History: FC<HistoryProps> = ({
     pageSize = 10,
     onPageChange,
     onClearHistory,
+    onRefresh,
 }) => {
     const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -54,6 +56,8 @@ const History: FC<HistoryProps> = ({
                 return <Tag neutral>{i18n.t('Partial')}</Tag>
             case 'failed':
                 return <Tag negative>{i18n.t('Failed')}</Tag>
+            case 'pending':
+                return <Tag neutral>{i18n.t('Pending')}</Tag>
             default:
                 return <Tag>{status}</Tag>
         }
@@ -75,16 +79,23 @@ const History: FC<HistoryProps> = ({
         <div className={classes.container}>
             <div className={classes.header}>
                 <h2>{i18n.t('Sync History')}</h2>
-                {logs.length > 0 && (
-                    <Button
-                        small
-                        secondary
-                        destructive
-                        onClick={onClearHistory}
-                    >
-                        {i18n.t('Clear History')}
-                    </Button>
-                )}
+                <div className={classes.headerActions}>
+                    {onRefresh && (
+                        <Button small secondary onClick={onRefresh}>
+                            {i18n.t('Refresh')}
+                        </Button>
+                    )}
+                    {logs.length > 0 && (
+                        <Button
+                            small
+                            secondary
+                            destructive
+                            onClick={onClearHistory}
+                        >
+                            {i18n.t('Clear History')}
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {logs.length === 0 ? (

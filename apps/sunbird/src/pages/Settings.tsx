@@ -125,6 +125,12 @@ const Settings: FC<SettingsProps> = ({
         <div className={classes.container}>
             <h2>{i18n.t('Sunbird RC Settings')}</h2>
 
+            <NoticeBox title={i18n.t('Worker-Based Sync')}>
+                {i18n.t(
+                    'Sync is handled by a background worker service. Configure the connection details below, then use the Sync page to queue sync requests. Ensure the worker service is running: python adapter/worker.py'
+                )}
+            </NoticeBox>
+
             <Card className={classes.formCard}>
                 <form onSubmit={handleSubmit} className={classes.form}>
                     {error && (
@@ -142,7 +148,7 @@ const Settings: FC<SettingsProps> = ({
                         }
                         placeholder="http://localhost:8081/api/v1"
                         helpText={i18n.t(
-                            'The base URL of your Sunbird RC instance'
+                            'Base URL of Sunbird RC (must be accessible from the worker server)'
                         )}
                         required
                     />
@@ -156,7 +162,7 @@ const Settings: FC<SettingsProps> = ({
                         }
                         placeholder="http://keycloak:8080/auth/realms/sunbird-rc/protocol/openid-connect/token"
                         helpText={i18n.t(
-                            'The Keycloak OAuth2 token endpoint URL'
+                            'Keycloak token endpoint (must be accessible from the worker server)'
                         )}
                         required
                     />
@@ -213,8 +219,11 @@ const Settings: FC<SettingsProps> = ({
                         >
                             {testing
                                 ? i18n.t('Testing...')
-                                : i18n.t('Test Connection')}
+                                : i18n.t('Test Connection (Browser)')}
                         </Button>
+                        <p className={classes.testHint}>
+                            {i18n.t('Note: Browser test may fail due to CORS. The worker service will still work if URLs are correct.')}
+                        </p>
 
                         {testResult && (
                             <NoticeBox

@@ -20,6 +20,11 @@
     margin: 0;
 }
 
+.headerActions {
+    display: flex;
+    gap: 8px;
+}
+
 .emptyState {
     padding: 48px;
     text-align: center;

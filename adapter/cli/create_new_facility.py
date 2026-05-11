@@ -26,7 +26,8 @@ import requests
 
 def load_env():
     """Load environment variables from .env file."""
-    env_path = Path(__file__).parent.parent / ".env"
+    # .env is in project root (three levels up from cli/)
+    env_path = Path(__file__).parent.parent.parent / ".env"
     if env_path.exists():
         with open(env_path) as f:
             for line in f:
@@ -37,8 +38,9 @@ def load_env():
 
 
 def load_config():
-    """Load configuration from config.json."""
-    config_path = Path(__file__).parent / "config.json"
+    """Load configuration from setup_config.json."""
+    # Config is in adapter/ (one level up from cli/)
+    config_path = Path(__file__).parent.parent / "setup_config.json"
     if not config_path.exists():
         raise Exception(f"Config file not found: {config_path}")
     with open(config_path) as f:

@@ -1,22 +1,36 @@
 import i18n from '@dhis2/d2-i18n'
-import { CircularLoader, NoticeBox } from '@dhis2/ui'
-import React, { FC, useState, useCallback } from 'react'
+import { CircularLoader, NoticeBox, AlertBar } from '@dhis2/ui'
+import React, { FC, useState, useCallback, useEffect } from 'react'
 import classes from '@/App.module.css'
 import { Navigation, PageKey } from '@/components'
-import { useConfig, useSyncHistory, usePrograms, usePendingTeis } from '@/hooks'
+import { useConfig, useSyncHistory, usePrograms, usePendingTeis, useSyncQueue } from '@/hooks'
 import { Dashboard, Settings, Sync, History, SunbirdConfig } from '@/pages'
 
 const MyApp: FC = () => {
     const [currentPage, setCurrentPage] = useState<PageKey>('dashboard')
     const [historyPage, setHistoryPage] = useState(1)
+    const [syncQueued, setSyncQueued] = useState(false)
 
     // Hooks for data
     const { config, loading: configLoading, saving, saveConfig, isConfigured, error: configError } = useConfig()
-    const { logs, loading: historyLoading, addLog, clearHistory } = useSyncHistory()
+    const { logs, loading: historyLoading, refetchHistory, clearHistory } = useSyncHistory()
     const { programs, loading: programsLoading } = usePrograms()
     const { records: syncRecords, loading: teisLoading, refetch: refetchTeis, stats: teiStats } = usePendingTeis(config?.programId)
+    const { queueSyncRequest } = useSyncQueue()
 
     const [syncing, setSyncing] = useState(false)
+
+    // Auto-refresh history after sync is queued
+    useEffect(() => {
+        if (syncQueued) {
+            const timer = setTimeout(() => {
+                refetchHistory()
+                refetchTeis()
+                setSyncQueued(false)
+            }, 3000) // Wait 3 seconds for worker to process
+            return () => clearTimeout(timer)
+        }
+    }, [syncQueued, refetchHistory, refetchTeis])
 
     const handleNavigate = useCallback((page: PageKey) => {
         setCurrentPage(page)
@@ -33,28 +47,19 @@ const MyApp: FC = () => {
         async (selectedIds: string[]) => {
             setSyncing(true)
             try {
-                // TODO: Implement actual sync logic
-                await addLog({
-                    timestamp: new Date().toISOString(),
-                    recordCount: selectedIds.length,
-                    successCount: selectedIds.length,
-                    errorCount: 0,
-                    status: 'success',
-                })
+                // Queue sync request for the worker to process
+                const requestId = await queueSyncRequest(
+                    selectedIds.length > 0 ? selectedIds : undefined
+                )
+                console.log(`Sync request queued: ${requestId}`)
+                setSyncQueued(true)
             } catch (err) {
-                await addLog({
-                    timestamp: new Date().toISOString(),
-                    recordCount: selectedIds.length,
-                    successCount: 0,
-                    errorCount: selectedIds.length,
-                    status: 'failed',
-                    details: err instanceof Error ? err.message : 'Unknown error',
-                })
+                console.error('Failed to queue sync:', err)
             } finally {
                 setSyncing(false)
             }
         },
-        [addLog]
+        [queueSyncRequest]
     )
 
     const handleRefresh = useCallback(() => {
@@ -130,6 +135,7 @@ const MyApp: FC = () => {
                         pageSize={10}
                         onPageChange={handleHistoryPageChange}
                         onClearHistory={handleClearHistory}
+                        onRefresh={refetchHistory}
                     />
                 )
             case 'settings':
