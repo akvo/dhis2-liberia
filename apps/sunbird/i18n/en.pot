@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-05-11T02:12:24.966Z\n"
-"PO-Revision-Date: 2026-05-11T02:12:24.967Z\n"
+"POT-Creation-Date: 2026-05-12T12:32:38.559Z\n"
+"PO-Revision-Date: 2026-05-12T12:32:38.559Z\n"
 
 msgid "Error"
 msgstr "Error"
@@ -31,6 +31,12 @@ msgstr "Please configure the Sunbird RC connection in Settings before syncing."
 
 msgid "Sync Overview"
 msgstr "Sync Overview"
+
+msgid "Select Program"
+msgstr "Select Program"
+
+msgid "Choose a program"
+msgstr "Choose a program"
 
 msgid "Total Synced"
 msgstr "Total Synced"
@@ -86,8 +92,8 @@ msgstr "Hide"
 msgid "View"
 msgstr "View"
 
-msgid "Please fill in all connection fields before testing"
-msgstr "Please fill in all connection fields before testing"
+msgid "New Program"
+msgstr "New Program"
 
 msgid "Sunbird URL is required"
 msgstr "Sunbird URL is required"
@@ -101,12 +107,6 @@ msgstr "Client ID is required"
 msgid "Client Secret is required"
 msgstr "Client Secret is required"
 
-msgid "Entity Type is required"
-msgstr "Entity Type is required"
-
-msgid "Program is required"
-msgstr "Program is required"
-
 msgid "Sunbird RC Settings"
 msgstr "Sunbird RC Settings"
 
@@ -115,6 +115,9 @@ msgstr "Worker-Based Sync"
 
 msgid "Validation Error"
 msgstr "Validation Error"
+
+msgid "Connection Settings"
+msgstr "Connection Settings"
 
 msgid "Sunbird RC Base URL"
 msgstr "Sunbird RC Base URL"
@@ -140,20 +143,33 @@ msgstr "Client Secret"
 msgid "OAuth2 client secret for Sunbird RC authentication"
 msgstr "OAuth2 client secret for Sunbird RC authentication"
 
-msgid "Sunbird Entity Type"
-msgstr "Sunbird Entity Type"
+msgid "Program Mappings"
+msgstr "Program Mappings"
 
-msgid "The entity type in Sunbird RC (e.g., WaterFacility, Student)"
-msgstr "The entity type in Sunbird RC (e.g., WaterFacility, Student)"
+msgid "All programs are already configured"
+msgstr "All programs are already configured"
 
-msgid "Testing..."
-msgstr "Testing..."
+msgid "Add Program"
+msgstr "Add Program"
 
-msgid "Test Connection (Browser)"
-msgstr "Test Connection (Browser)"
+msgid "No Programs Configured"
+msgstr "No Programs Configured"
 
-msgid "Connection Failed"
-msgstr "Connection Failed"
+msgid ""
+"Click \"Add Program\" to configure a DHIS2 program for syncing to Sunbird "
+"RC."
+msgstr ""
+"Click \"Add Program\" to configure a DHIS2 program for syncing to Sunbird "
+"RC."
+
+msgid "Disabled"
+msgstr "Disabled"
+
+msgid "Edit program"
+msgstr "Edit program"
+
+msgid "Remove program"
+msgstr "Remove program"
 
 msgid "DHIS2 Program"
 msgstr "DHIS2 Program"
@@ -161,8 +177,20 @@ msgstr "DHIS2 Program"
 msgid "Select a program"
 msgstr "Select a program"
 
+msgid "Sunbird Entity Type"
+msgstr "Sunbird Entity Type"
+
+msgid "The entity type in Sunbird RC (e.g., WaterFacility, Student)"
+msgstr "The entity type in Sunbird RC (e.g., WaterFacility, Student)"
+
+msgid "Enabled"
+msgstr "Enabled"
+
 msgid "Saving..."
 msgstr "Saving..."
+
+msgid "Saved!"
+msgstr "Saved!"
 
 msgid "Save Settings"
 msgstr "Save Settings"
@@ -179,23 +207,17 @@ msgstr "Sync to Sunbird RC"
 msgid "Syncing..."
 msgstr "Syncing..."
 
+msgid "Choose a program to sync"
+msgstr "Choose a program to sync"
+
 msgid "Queuing sync request..."
 msgstr "Queuing sync request..."
 
-msgid "How Sync Works"
-msgstr "How Sync Works"
+msgid "Please select a program above to view tracked entities."
+msgstr "Please select a program above to view tracked entities."
 
-msgid ""
-"When you click Sync, a request is queued. The background worker service "
-"processes the queue and syncs records to Sunbird RC. Check the History page "
-"for results."
-msgstr ""
-"When you click Sync, a request is queued. The background worker service "
-"processes the queue and syncs records to Sunbird RC. Check the History page "
-"for results."
-
-msgid "No tracked entities found for the configured program."
-msgstr "No tracked entities found for the configured program."
+msgid "No tracked entities found for the selected program."
+msgstr "No tracked entities found for the selected program."
 
 msgid "Name"
 msgstr "Name"

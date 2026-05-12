@@ -13,8 +13,12 @@ import {
     DataTableColumnHeader,
     Tag,
     Checkbox,
+    SingleSelect,
+    SingleSelectOption,
+    Field,
 } from '@dhis2/ui'
 import React, { FC, useState } from 'react'
+import type { ProgramConfig } from './Settings'
 import classes from './Sync.module.css'
 
 export interface TEIRecord {
@@ -31,6 +35,10 @@ interface SyncProps {
     loading?: boolean
     syncing?: boolean
     isConfigured?: boolean
+    programs?: ProgramConfig[]
+    dhis2Programs?: Array<{ id: string; displayName: string }>
+    selectedProgramId?: string
+    onProgramChange: (programId: string) => void
     onSync: (selectedIds: string[]) => void
     onRefresh: () => void
 }
@@ -40,9 +48,17 @@ const Sync: FC<SyncProps> = ({
     loading = false,
     syncing = false,
     isConfigured = false,
+    programs = [],
+    dhis2Programs = [],
+    selectedProgramId,
+    onProgramChange,
     onSync,
     onRefresh,
 }) => {
+    const getProgramDisplayName = (programId: string): string => {
+        const dhis2Program = dhis2Programs.find(p => p.id === programId)
+        return dhis2Program?.displayName || programId
+    }
     const [selectedIds, setSelectedIds] = useState<string[]>([])
 
     const handleSelectAll = (checked: boolean) => {
@@ -103,6 +119,8 @@ const Sync: FC<SyncProps> = ({
 
     const pendingCount = records.filter((r) => r.syncStatus === 'pending').length
 
+    const enabledPrograms = programs.filter(p => p.enabled)
+
     return (
         <div className={classes.container}>
             <div className={classes.header}>
@@ -114,7 +132,7 @@ const Sync: FC<SyncProps> = ({
                     <Button
                         primary
                         onClick={handleSync}
-                        disabled={syncing || pendingCount === 0}
+                        disabled={syncing || pendingCount === 0 || !selectedProgramId}
                     >
                         {syncing
                             ? i18n.t('Syncing...')
@@ -129,6 +147,26 @@ const Sync: FC<SyncProps> = ({
                 </div>
             </div>
 
+            {enabledPrograms.length > 0 && (
+                <div className={classes.programSelector}>
+                    <Field label={i18n.t('Select Program')}>
+                        <SingleSelect
+                            selected={selectedProgramId}
+                            onChange={({ selected }) => onProgramChange(selected || '')}
+                            placeholder={i18n.t('Choose a program to sync')}
+                        >
+                            {enabledPrograms.map((prog) => (
+                                <SingleSelectOption
+                                    key={prog.programId}
+                                    label={`${getProgramDisplayName(prog.programId)} → ${prog.entityType}`}
+                                    value={prog.programId}
+                                />
+                            ))}
+                        </SingleSelect>
+                    </Field>
+                </div>
+            )}
+
             {syncing && (
                 <div className={classes.progressContainer}>
                     <LinearLoader />
@@ -136,16 +174,16 @@ const Sync: FC<SyncProps> = ({
                 </div>
             )}
 
-            <NoticeBox title={i18n.t('How Sync Works')}>
-                {i18n.t(
-                    'When you click Sync, a request is queued. The background worker service processes the queue and syncs records to Sunbird RC. Check the History page for results.'
-                )}
-            </NoticeBox>
-
-            {records.length === 0 ? (
+            {!selectedProgramId ? (
                 <Card>
                     <div className={classes.emptyState}>
-                        <p>{i18n.t('No tracked entities found for the configured program.')}</p>
+                        <p>{i18n.t('Please select a program above to view tracked entities.')}</p>
+                    </div>
+                </Card>
+            ) : records.length === 0 ? (
+                <Card>
+                    <div className={classes.emptyState}>
+                        <p>{i18n.t('No tracked entities found for the selected program.')}</p>
                     </div>
                 </Card>
             ) : (

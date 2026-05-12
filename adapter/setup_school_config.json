@@ -1,0 +1,162 @@
+{
+  "option_sets": [
+    {
+      "name": "School Type",
+      "code": "SCHOOL_TYPE",
+      "options": [
+        {"name": "Primary School", "code": "PRIMARY"},
+        {"name": "Junior High School", "code": "JUNIOR_HIGH"},
+        {"name": "Senior High School", "code": "SENIOR_HIGH"},
+        {"name": "Vocational School", "code": "VOCATIONAL"},
+        {"name": "Community School", "code": "COMMUNITY"},
+        {"name": "Private School", "code": "PRIVATE"},
+        {"name": "Other", "code": "OTHER"}
+      ]
+    },
+    {
+      "name": "School Status",
+      "code": "SCHOOL_STATUS",
+      "options": [
+        {"name": "Active", "code": "ACTIVE"},
+        {"name": "Inactive", "code": "INACTIVE"},
+        {"name": "Under Construction", "code": "CONSTRUCTION"},
+        {"name": "Closed", "code": "CLOSED"}
+      ]
+    },
+    {
+      "name": "School Ownership",
+      "code": "SCHOOL_OWNERSHIP",
+      "options": [
+        {"name": "Government", "code": "GOVERNMENT"},
+        {"name": "Private", "code": "PRIVATE"},
+        {"name": "Mission/Religious", "code": "MISSION"},
+        {"name": "Community", "code": "COMMUNITY"},
+        {"name": "NGO", "code": "NGO"},
+        {"name": "Other", "code": "OTHER"}
+      ]
+    }
+  ],
+  "shared_attributes": [
+    "SUNBIRD_OSID",
+    "SYNC_STATUS_ATTR",
+    "COUNTY",
+    "DISTRICT",
+    "COMMUNITY"
+  ],
+  "attributes": [
+    {
+      "name": "School ID",
+      "shortName": "schoolId",
+      "code": "SCHOOL_ID",
+      "valueType": "TEXT",
+      "aggregationType": "NONE",
+      "unique": true,
+      "searchable": true
+    },
+    {
+      "name": "School Name",
+      "shortName": "schoolName",
+      "code": "SCHOOL_NAME",
+      "valueType": "TEXT",
+      "aggregationType": "NONE",
+      "searchable": true
+    },
+    {
+      "name": "School Type",
+      "shortName": "schoolType",
+      "code": "SCHOOL_TYPE_ATTR",
+      "valueType": "TEXT",
+      "aggregationType": "NONE",
+      "optionSetCode": "SCHOOL_TYPE"
+    },
+    {
+      "name": "School Status",
+      "shortName": "schoolStatus",
+      "code": "SCHOOL_STATUS_ATTR",
+      "valueType": "TEXT",
+      "aggregationType": "NONE",
+      "optionSetCode": "SCHOOL_STATUS"
+    },
+    {
+      "name": "School Ownership",
+      "shortName": "schoolOwnership",
+      "code": "SCHOOL_OWNERSHIP_ATTR",
+      "valueType": "TEXT",
+      "aggregationType": "NONE",
+      "optionSetCode": "SCHOOL_OWNERSHIP"
+    },
+    {
+      "name": "Number of Students",
+      "shortName": "numStudents",
+      "code": "SCHOOL_NUM_STUDENTS",
+      "valueType": "INTEGER_POSITIVE",
+      "aggregationType": "SUM"
+    },
+    {
+      "name": "Number of Teachers",
+      "shortName": "numTeachers",
+      "code": "SCHOOL_NUM_TEACHERS",
+      "valueType": "INTEGER_POSITIVE",
+      "aggregationType": "SUM"
+    },
+    {
+      "name": "Number of Classrooms",
+      "shortName": "numClassrooms",
+      "code": "SCHOOL_NUM_CLASSROOMS",
+      "valueType": "INTEGER_POSITIVE",
+      "aggregationType": "SUM"
+    },
+    {
+      "name": "Principal Name",
+      "shortName": "principalName",
+      "code": "SCHOOL_PRINCIPAL_NAME",
+      "valueType": "TEXT",
+      "aggregationType": "NONE"
+    },
+    {
+      "name": "Contact Phone",
+      "shortName": "contactPhone",
+      "code": "SCHOOL_CONTACT_PHONE",
+      "valueType": "PHONE_NUMBER",
+      "aggregationType": "NONE"
+    },
+    {
+      "name": "Year Established",
+      "shortName": "yearEstablished",
+      "code": "SCHOOL_YEAR_ESTABLISHED",
+      "valueType": "INTEGER",
+      "aggregationType": "NONE"
+    }
+  ],
+  "field_mapping": {
+    "schoolName": "SCHOOL_NAME",
+    "schoolType": "SCHOOL_TYPE_ATTR",
+    "schoolStatus": "SCHOOL_STATUS_ATTR",
+    "ownership": "SCHOOL_OWNERSHIP_ATTR",
+    "numStudents": "SCHOOL_NUM_STUDENTS",
+    "numTeachers": "SCHOOL_NUM_TEACHERS",
+    "numClassrooms": "SCHOOL_NUM_CLASSROOMS",
+    "principalName": "SCHOOL_PRINCIPAL_NAME",
+    "contactPhone": "SCHOOL_CONTACT_PHONE",
+    "yearEstablished": "SCHOOL_YEAR_ESTABLISHED",
+    "location.county": "COUNTY",
+    "location.district": "DISTRICT",
+    "location.community": "COMMUNITY"
+  },
+  "org_unit_fields": ["COUNTY", "DISTRICT", "COMMUNITY"],
+  "sync_status": {
+    "pending": "SYNC_STATUS_PENDING",
+    "synced": "SYNC_STATUS_SYNCED",
+    "failed": "SYNC_STATUS_FAILED"
+  },
+  "program": {
+    "name": "School Registry",
+    "shortName": "School Registry",
+    "code": "SCHOOL_REGISTRY"
+  },
+  "tracked_entity_type": {
+    "name": "School",
+    "shortName": "School",
+    "code": "SCHOOL"
+  }
+}

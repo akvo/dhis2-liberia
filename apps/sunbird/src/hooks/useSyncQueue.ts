@@ -7,6 +7,7 @@ const QUEUE_KEY = 'queue'
 interface SyncRequest {
     id: string
     type: 'all' | 'selected'
+    programId: string
     teiIds?: string[]
     status: 'pending' | 'processing' | 'completed'
     createdAt: string
@@ -40,7 +41,7 @@ const updateQueueMutation = {
 }
 
 interface UseSyncQueueResult {
-    queueSyncRequest: (teiIds?: string[]) => Promise<string>
+    queueSyncRequest: (programId: string, teiIds?: string[]) => Promise<string>
     loading: boolean
     error: Error | null
 }
@@ -57,7 +58,7 @@ export const useSyncQueue = (): UseSyncQueueResult => {
     const [updateMutation] = useDataMutation(updateQueueMutation)
 
     const queueSyncRequest = useCallback(
-        async (teiIds?: string[]): Promise<string> => {
+        async (programId: string, teiIds?: string[]): Promise<string> => {
             setLoading(true)
             setError(null)
 
@@ -68,6 +69,7 @@ export const useSyncQueue = (): UseSyncQueueResult => {
                 const newRequest: SyncRequest = {
                     id: requestId,
                     type: teiIds && teiIds.length > 0 ? 'selected' : 'all',
+                    programId,
                     teiIds: teiIds && teiIds.length > 0 ? teiIds : undefined,
                     status: 'pending',
                     createdAt: new Date().toISOString(),
