@@ -49,3 +49,64 @@
     display: flex;
     justify-content: flex-end;
 }
+
+.programsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.programsHeader h3 {
+    margin: 0;
+}
+
+.programsList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.programItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--colors-grey050);
+    border: 1px solid var(--colors-grey300);
+    border-radius: 4px;
+}
+
+.programItemActions {
+    display: flex;
+    gap: 8px;
+}
+
+.programItemSelected {
+    background: var(--colors-blue050);
+    border-color: var(--colors-blue500);
+}
+
+.programItemSelected:hover {
+    background: var(--colors-blue100);
+}
+
+.programItemContent {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.programName {
+    font-weight: 500;
+}
+
+.programEditCard {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--colors-grey050);
+}
+
+.programEditCard h4 {
+    margin: 0 0 16px 0;
+}

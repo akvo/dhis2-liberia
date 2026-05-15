@@ -8,24 +8,34 @@ import {
     Field,
     SingleSelect,
     SingleSelectOption,
+    Switch,
+    IconAdd16,
+    IconDelete16,
+    IconEdit16,
+    Divider,
+    Tag,
 } from '@dhis2/ui'
 import React, { FC, useState, useEffect } from 'react'
-import { useSunbirdApi } from '@/hooks'
 import classes from './Settings.module.css'
+
+export interface AttributeMapping {
+    dhis2Attribute: string
+    sunbirdField: string
+}
+
+export interface ProgramConfig {
+    programId: string
+    entityType: string
+    enabled: boolean
+    mappings: AttributeMapping[]
+}
 
 export interface SunbirdConfig {
     sunbirdUrl: string
     keycloakUrl: string
     clientId: string
     clientSecret: string
-    entityType: string
-    programId: string
-    mappings: AttributeMapping[]
-}
-
-export interface AttributeMapping {
-    dhis2Attribute: string
-    sunbirdField: string
+    programs: ProgramConfig[]
 }
 
 interface SettingsProps {
@@ -42,8 +52,13 @@ const defaultConfig: SunbirdConfig = {
     keycloakUrl: '',
     clientId: '',
     clientSecret: '',
-    entityType: '',
+    programs: [],
+}
+
+const defaultProgramConfig: ProgramConfig = {
     programId: '',
+    entityType: '',
+    enabled: true,
     mappings: [],
 }
 
@@ -58,8 +73,10 @@ const Settings: FC<SettingsProps> = ({
     const [formData, setFormData] = useState<SunbirdConfig>(
         config || defaultConfig
     )
+    const [selectedProgramIndex, setSelectedProgramIndex] = useState<number | null>(null)
     const [error, setError] = useState<string | null>(null)
-    const { testConnection, testing, testResult, clearResult } = useSunbirdApi()
+    const [saved, setSaved] = useState(false)
+    const [prevSaving, setPrevSaving] = useState(false)
 
     useEffect(() => {
         if (config) {
@@ -67,19 +84,53 @@ const Settings: FC<SettingsProps> = ({
         }
     }, [config])
 
-    const handleTestConnection = () => {
-        clearResult()
-        if (!formData.sunbirdUrl || !formData.keycloakUrl || !formData.clientId || !formData.clientSecret || !formData.entityType) {
-            setError(i18n.t('Please fill in all connection fields before testing'))
-            return
+    // Show "Saved!" when saving completes
+    useEffect(() => {
+        if (prevSaving && !saving) {
+            setSaved(true)
+            const timer = setTimeout(() => setSaved(false), 2000)
+            return () => clearTimeout(timer)
         }
-        setError(null)
-        testConnection(formData)
-    }
+        setPrevSaving(saving)
+    }, [saving, prevSaving])
 
-    const handleChange = (field: keyof SunbirdConfig, value: string) => {
+    const handleGlobalChange = (field: keyof Omit<SunbirdConfig, 'programs'>, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }))
         setError(null)
+    }
+
+    const handleProgramChange = (index: number, field: keyof ProgramConfig, value: string | boolean) => {
+        setFormData((prev) => {
+            const newPrograms = [...prev.programs]
+            newPrograms[index] = { ...newPrograms[index], [field]: value }
+            return { ...prev, programs: newPrograms }
+        })
+        setError(null)
+    }
+
+    const handleAddProgram = () => {
+        setFormData((prev) => ({
+            ...prev,
+            programs: [...prev.programs, { ...defaultProgramConfig }],
+        }))
+        setSelectedProgramIndex(formData.programs.length)
+    }
+
+    const handleRemoveProgram = (index: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            programs: prev.programs.filter((_, i) => i !== index),
+        }))
+        if (selectedProgramIndex === index) {
+            setSelectedProgramIndex(null)
+        } else if (selectedProgramIndex !== null && selectedProgramIndex > index) {
+            setSelectedProgramIndex(selectedProgramIndex - 1)
+        }
+    }
+
+    const getProgramName = (programId: string): string => {
+        const program = programs.find((p) => p.id === programId)
+        return program?.displayName || programId || i18n.t('New Program')
     }
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -101,13 +152,20 @@ const Settings: FC<SettingsProps> = ({
             setError(i18n.t('Client Secret is required'))
             return
         }
-        if (!formData.entityType) {
-            setError(i18n.t('Entity Type is required'))
-            return
-        }
-        if (!formData.programId) {
-            setError(i18n.t('Program is required'))
-            return
+
+        // Validate each program
+        for (let i = 0; i < formData.programs.length; i++) {
+            const prog = formData.programs[i]
+            if (!prog.programId) {
+                setError(i18n.t('Program {{index}}: DHIS2 Program is required', { index: i + 1 }))
+                setSelectedProgramIndex(i)
+                return
+            }
+            if (!prog.entityType) {
+                setError(i18n.t('Program {{index}}: Entity Type is required', { index: i + 1 }))
+                setSelectedProgramIndex(i)
+                return
+            }
         }
 
         onSave(formData)
@@ -120,6 +178,8 @@ const Settings: FC<SettingsProps> = ({
             </div>
         )
     }
+
+    const selectedProgram = selectedProgramIndex !== null ? formData.programs[selectedProgramIndex] : null
 
     return (
         <div className={classes.container}>
@@ -139,12 +199,14 @@ const Settings: FC<SettingsProps> = ({
                         </NoticeBox>
                     )}
 
+                    <h3>{i18n.t('Connection Settings')}</h3>
+
                     <InputField
                         label={i18n.t('Sunbird RC Base URL')}
                         name="sunbirdUrl"
                         value={formData.sunbirdUrl}
                         onChange={({ value }) =>
-                            handleChange('sunbirdUrl', value || '')
+                            handleGlobalChange('sunbirdUrl', value || '')
                         }
                         placeholder="http://localhost:8081/api/v1"
                         helpText={i18n.t(
@@ -158,7 +220,7 @@ const Settings: FC<SettingsProps> = ({
                         name="keycloakUrl"
                         value={formData.keycloakUrl}
                         onChange={({ value }) =>
-                            handleChange('keycloakUrl', value || '')
+                            handleGlobalChange('keycloakUrl', value || '')
                         }
                         placeholder="http://keycloak:8080/auth/realms/sunbird-rc/protocol/openid-connect/token"
                         helpText={i18n.t(
@@ -172,7 +234,7 @@ const Settings: FC<SettingsProps> = ({
                         name="clientId"
                         value={formData.clientId}
                         onChange={({ value }) =>
-                            handleChange('clientId', value || '')
+                            handleGlobalChange('clientId', value || '')
                         }
                         placeholder="demo-api"
                         helpText={i18n.t(
@@ -187,7 +249,7 @@ const Settings: FC<SettingsProps> = ({
                         type="password"
                         value={formData.clientSecret}
                         onChange={({ value }) =>
-                            handleChange('clientSecret', value || '')
+                            handleGlobalChange('clientSecret', value || '')
                         }
                         placeholder="********"
                         helpText={i18n.t(
@@ -196,66 +258,129 @@ const Settings: FC<SettingsProps> = ({
                         required
                     />
 
-                    <InputField
-                        label={i18n.t('Sunbird Entity Type')}
-                        name="entityType"
-                        value={formData.entityType}
-                        onChange={({ value }) =>
-                            handleChange('entityType', value || '')
-                        }
-                        placeholder="WaterFacility"
-                        helpText={i18n.t(
-                            'The entity type in Sunbird RC (e.g., WaterFacility, Student)'
-                        )}
-                        required
-                    />
+                    <Divider />
 
-                    <div className={classes.testConnectionSection}>
-                        <Button
-                            onClick={handleTestConnection}
-                            loading={testing}
-                            disabled={testing}
-                            secondary
-                        >
-                            {testing
-                                ? i18n.t('Testing...')
-                                : i18n.t('Test Connection (Browser)')}
-                        </Button>
-                        <p className={classes.testHint}>
-                            {i18n.t('Note: Browser test may fail due to CORS. The worker service will still work if URLs are correct.')}
-                        </p>
-
-                        {testResult && (
-                            <NoticeBox
-                                title={testResult.success ? i18n.t('Success') : i18n.t('Connection Failed')}
-                                warning={!testResult.success}
-                                valid={testResult.success}
-                            >
-                                <p>{testResult.message}</p>
-                                {testResult.details && (
-                                    <p className={classes.testDetails}>{testResult.details}</p>
-                                )}
-                            </NoticeBox>
-                        )}
+                    <div className={classes.programsHeader}>
+                        <h3>{i18n.t('Program Mappings')}</h3>
+                        {(() => {
+                            const configuredProgramIds = formData.programs.map(p => p.programId)
+                            const availablePrograms = programs.filter(p => !configuredProgramIds.includes(p.id))
+                            const hasAvailablePrograms = availablePrograms.length > 0
+                            return (
+                                <Button
+                                    small
+                                    type="button"
+                                    onClick={handleAddProgram}
+                                    icon={<IconAdd16 />}
+                                    disabled={!hasAvailablePrograms}
+                                    title={!hasAvailablePrograms ? i18n.t('All programs are already configured') : undefined}
+                                >
+                                    {i18n.t('Add Program')}
+                                </Button>
+                            )
+                        })()}
                     </div>
 
-                    <Field label={i18n.t('DHIS2 Program')} required>
-                        <SingleSelect
-                            selected={formData.programId}
-                            onChange={({ selected }) =>
-                                handleChange('programId', selected || '')
-                            }
-                            placeholder={i18n.t('Select a program')}
-                        >
-                            {programs.map((program) => (
-                                <SingleSelectOption
-                                    key={program.id}
-                                    label={program.displayName}
-                                    value={program.id}
-                                />
+                    {formData.programs.length === 0 ? (
+                        <NoticeBox title={i18n.t('No Programs Configured')}>
+                            {i18n.t('Click "Add Program" to configure a DHIS2 program for syncing to Sunbird RC.')}
+                        </NoticeBox>
+                    ) : (
+                        <div className={classes.programsList}>
+                            {formData.programs.map((prog, index) => (
+                                <div
+                                    key={index}
+                                    className={`${classes.programItem} ${selectedProgramIndex === index ? classes.programItemSelected : ''}`}
+                                >
+                                    <div className={classes.programItemContent}>
+                                        <span className={classes.programName}>
+                                            {getProgramName(prog.programId)}
+                                        </span>
+                                        {prog.entityType && (
+                                            <Tag neutral>{prog.entityType}</Tag>
+                                        )}
+                                        {!prog.enabled && (
+                                            <Tag neutral>{i18n.t('Disabled')}</Tag>
+                                        )}
+                                    </div>
+                                    <div className={classes.programItemActions}>
+                                        <Button
+                                            small
+                                            type="button"
+                                            onClick={() => setSelectedProgramIndex(
+                                                selectedProgramIndex === index ? null : index
+                                            )}
+                                            icon={<IconEdit16 />}
+                                            aria-label={i18n.t('Edit program')}
+                                        />
+                                        <Button
+                                            small
+                                            destructive
+                                            type="button"
+                                            onClick={() => handleRemoveProgram(index)}
+                                            icon={<IconDelete16 />}
+                                            aria-label={i18n.t('Remove program')}
+                                        />
+                                    </div>
+                                </div>
                             ))}
-                        </SingleSelect>
-                    </Field>
+                        </div>
+                    )}
+
+                    {selectedProgram !== null && selectedProgramIndex !== null && (
+                        <Card className={classes.programEditCard}>
+                            <h4>{i18n.t('Edit Program: {{name}}', { name: getProgramName(selectedProgram.programId) })}</h4>
+
+                            <Field label={i18n.t('DHIS2 Program')} required>
+                                <SingleSelect
+                                    selected={selectedProgram.programId}
+                                    onChange={({ selected }) =>
+                                        handleProgramChange(selectedProgramIndex, 'programId', selected || '')
+                                    }
+                                    placeholder={i18n.t('Select a program')}
+                                >
+                                    {programs
+                                        .filter((program) => {
+                                            // Show current selection + programs not yet configured
+                                            const isCurrentSelection = program.id === selectedProgram.programId
+                                            const isAlreadyConfigured = formData.programs.some(
+                                                (p, idx) => p.programId === program.id && idx !== selectedProgramIndex
+                                            )
+                                            return isCurrentSelection || !isAlreadyConfigured
+                                        })
+                                        .map((program) => (
+                                            <SingleSelectOption
+                                                key={program.id}
+                                                label={program.displayName}
+                                                value={program.id}
+                                            />
+                                        ))}
+                                </SingleSelect>
+                            </Field>
+
+                            <InputField
+                                label={i18n.t('Sunbird Entity Type')}
+                                name="entityType"
+                                value={selectedProgram.entityType}
+                                onChange={({ value }) =>
+                                    handleProgramChange(selectedProgramIndex, 'entityType', value || '')
+                                }
+                                placeholder="WaterFacility"
+                                helpText={i18n.t(
+                                    'The entity type in Sunbird RC (e.g., WaterFacility, Student)'
+                                )}
+                                required
+                            />
+
+                            <Switch
+                                label={i18n.t('Enabled')}
+                                checked={selectedProgram.enabled}
+                                onChange={({ checked }) =>
+                                    handleProgramChange(selectedProgramIndex, 'enabled', checked)
+                                }
+                            />
+                        </Card>
+                    )}
 
                     <div className={classes.buttonContainer}>
                         <Button
@@ -266,7 +391,9 @@ const Settings: FC<SettingsProps> = ({
                         >
                             {saving
                                 ? i18n.t('Saving...')
-                                : i18n.t('Save Settings')}
+                                : saved
+                                  ? i18n.t('Saved!')
+                                  : i18n.t('Save Settings')}
                         </Button>
                     </div>
                 </form>

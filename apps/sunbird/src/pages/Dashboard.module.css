@@ -48,3 +48,19 @@
     font-size: 16px;
     color: var(--colors-grey800);
 }
+
+.headerRow {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.headerRow h2 {
+    margin: 0;
+}
+
+.programSelector {
+    margin-top: 16px;
+    max-width: 400px;
+}

@@ -46,7 +46,27 @@ export const useConfig = (): UseConfigResult => {
         configQuery,
         {
             onComplete: (data) => {
-                setConfig(data.dataStore as unknown as SunbirdConfig)
+                const rawConfig = data.dataStore as unknown as SunbirdConfig & {
+                    programId?: string
+                    entityType?: string
+                    mappings?: unknown[]
+                }
+                // Migrate old format to new format
+                if (!rawConfig.programs) {
+                    const { programId, entityType, mappings, ...globalSettings } = rawConfig
+                    const migratedConfig: SunbirdConfig = {
+                        ...globalSettings,
+                        programs: programId ? [{
+                            programId,
+                            entityType: entityType || '',
+                            enabled: true,
+                            mappings: (mappings || []) as SunbirdConfig['programs'][0]['mappings'],
+                        }] : [],
+                    }
+                    setConfig(migratedConfig)
+                } else {
+                    setConfig(rawConfig)
+                }
                 setExists(true)
             },
             onError: (err) => {
@@ -95,8 +115,9 @@ export const useConfig = (): UseConfigResult => {
             config?.keycloakUrl &&
             config?.clientId &&
             config?.clientSecret &&
-            config?.entityType &&
-            config?.programId
+            config?.programs &&
+            config.programs.length > 0 &&
+            config.programs.some(p => p.enabled && p.programId && p.entityType)
     )
 
     // Treat 404 as not configured, not an error

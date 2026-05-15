@@ -155,8 +155,20 @@ class Worker:
 
     def is_configured(self, config: dict) -> bool:
         """Check if Sunbird RC is properly configured."""
-        required = ["sunbirdUrl", "keycloakUrl", "clientId", "clientSecret", "programId"]
-        return all(config.get(key) for key in required)
+        required = ["sunbirdUrl", "keycloakUrl", "clientId", "clientSecret"]
+        if not all(config.get(key) for key in required):
+            return False
+        # Check for at least one enabled program
+        programs = config.get("programs", [])
+        return any(p.get("enabled") and p.get("programId") and p.get("entityType") for p in programs)
+
+    def get_program_config(self, config: dict, program_id: str) -> Optional[dict]:
+        """Get program config by programId."""
+        programs = config.get("programs", [])
+        for prog in programs:
+            if prog.get("programId") == program_id and prog.get("enabled"):
+                return prog
+        return None
 
     # -------------------------------------------------------------------------
     # History Operations
@@ -189,8 +201,8 @@ class Worker:
     # Sync Operations
     # -------------------------------------------------------------------------
 
-    def create_sync_engine(self, sunbird_config: dict) -> SyncEngine:
-        """Create a SyncEngine from DataStore config."""
+    def create_sync_engine(self, sunbird_config: dict, program_config: dict) -> SyncEngine:
+        """Create a SyncEngine from DataStore config and program config."""
         dhis2_config = DHIS2Config(
             base_url=self.dhis2_url.replace("/api", ""),
             username=self.dhis2_auth[0],
@@ -202,13 +214,13 @@ class Worker:
             keycloak_url=sunbird_config.get("keycloakUrl", ""),
             client_id=sunbird_config.get("clientId", ""),
             client_secret=sunbird_config.get("clientSecret", ""),
-            entity_type=sunbird_config.get("entityType", "WaterFacility"),
+            entity_type=program_config.get("entityType", "WaterFacility"),
         )
 
         config = SyncConfig(
             dhis2=dhis2_config,
             sunbird=sunbird,
-            program_id=sunbird_config.get("programId"),
+            program_id=program_config.get("programId"),
             setup_config=self.setup_config,
         )
 
@@ -217,17 +229,24 @@ class Worker:
     def process_sync_request(self, request: dict, sunbird_config: dict) -> dict:
         """Process a single sync request."""
         request_id = request.get("id", "unknown")
+        program_id = request.get("programId")
         tei_ids = request.get("teiIds")  # Optional: specific TEIs to sync
         sync_type = request.get("type", "all")  # "all" or "selected"
 
-        logger.info(f"Processing sync request {request_id} (type: {sync_type})")
+        logger.info(f"Processing sync request {request_id} (program: {program_id}, type: {sync_type})")
 
         try:
-            engine = self.create_sync_engine(sunbird_config)
+            # Get program config
+            program_config = self.get_program_config(sunbird_config, program_id)
+            if not program_config:
+                raise ValueError(f"Program {program_id} not found or not enabled")
+
+            engine = self.create_sync_engine(sunbird_config, program_config)
             result = engine.run_sync(tei_ids=tei_ids)
 
             return {
                 "requestId": request_id,
+                "programId": program_id,
                 "type": sync_type,
                 "success": result.success,
                 "total": result.total,
@@ -242,6 +261,7 @@ class Worker:
             logger.error(f"Sync request {request_id} failed: {e}")
             return {
                 "requestId": request_id,
+                "programId": program_id,
                 "type": sync_type,
                 "success": False,
                 "total": 0,

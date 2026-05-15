@@ -122,30 +122,35 @@ export const usePendingTeis = (programId: string | undefined): UsePendingTeisRes
             })
 
             // Transform TEIs to records
-            const transformedRecords: TEIRecord[] = teis.map((tei) => {
-                const getAttrValue = (attrId: string): string => {
-                    const attr = tei.attributes?.find((a) => a.attribute === attrId)
-                    return attr?.value || ''
-                }
+            const transformedRecords: TEIRecord[] = teis
+                .map((tei) => {
+                    const getAttrValue = (attrId: string): string => {
+                        const attr = tei.attributes?.find((a) => a.attribute === attrId)
+                        return attr?.value || ''
+                    }
 
-                const syncStatusValue = getAttrValue(syncStatusId)
-                let syncStatus: TEIRecord['syncStatus'] = 'pending'
-                if (syncStatusValue === SYNCED_STATUS) {
-                    syncStatus = 'synced'
-                } else if (syncStatusValue === FAILED_STATUS) {
-                    syncStatus = 'error'
-                }
+                    const syncStatusValue = getAttrValue(syncStatusId)
+                    let syncStatus: TEIRecord['syncStatus'] = 'pending'
+                    if (syncStatusValue === SYNCED_STATUS) {
+                        syncStatus = 'synced'
+                    } else if (syncStatusValue === FAILED_STATUS) {
+                        syncStatus = 'error'
+                    }
 
-                const geoCode = getAttrValue(geoCodeId)
+                    const geoCode = getAttrValue(geoCodeId)
 
-                return {
-                    id: tei.trackedEntityInstance,
-                    displayName: geoCode || tei.trackedEntityInstance,
-                    orgUnit: ouNameMap.get(tei.orgUnit) || tei.orgUnit,
-                    lastUpdated: new Date(tei.lastUpdated).toLocaleString(),
-                    syncStatus,
-                }
-            })
+                    return {
+                        id: tei.trackedEntityInstance,
+                        displayName: geoCode || tei.trackedEntityInstance,
+                        orgUnit: ouNameMap.get(tei.orgUnit) || tei.orgUnit,
+                        lastUpdated: new Date(tei.lastUpdated).toLocaleString(),
+                        lastUpdatedRaw: new Date(tei.lastUpdated).getTime(),
+                        syncStatus,
+                    }
+                })
+                // Sort by lastUpdated descending (newest first)
+                .sort((a, b) => b.lastUpdatedRaw - a.lastUpdatedRaw)
+                .map(({ lastUpdatedRaw, ...rest }) => rest)
 
             // Calculate stats
             const newStats = {
