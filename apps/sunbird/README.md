@@ -1,5 +1,28 @@
 This project was bootstrapped with [DHIS2 Application Platform](https://github.com/dhis2/app-platform).
 
+## Build & deploy with Docker (no local pnpm/node needed)
+
+`build-docker.sh` runs the full install/build/deploy chain inside `node:24-alpine`. `node_modules`, `build/`, `.d2/` and the pnpm cache live in named docker volumes — the host source dir stays clean. The container uses `--network host`, so the same script works for a local docker-compose DHIS2 and for a remote one.
+
+```bash
+# Deploy to local docker-compose DHIS2 (e.g. from akvo/akvo-dhis2)
+DHIS2_URL=http://localhost:18080 \
+DHIS2_USERNAME=admin \
+DHIS2_PASSWORD=district \
+  ./build-docker.sh
+
+# Deploy to the test cluster
+DHIS2_URL=https://demo1.akvotest.org \
+DHIS2_USERNAME=admin \
+DHIS2_PASSWORD='<from Vault kv/test/dhis2-demo1>' \
+  ./build-docker.sh
+
+# Force a fresh install (wipes the cached node_modules/build/.d2 volumes)
+CLEAN=1 ./build-docker.sh
+```
+
+App is then available at `<DHIS2_URL>/api/apps/sunbird/index.html`.
+
 ## Available Scripts
 
 In the project directory, you can run:
