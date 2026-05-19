@@ -1,0 +1,78 @@
+name: Build, Push and Rollout Adapter to Test Cluster
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'adapter/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-adapter-to-test
+  cancel-in-progress: false
+
+jobs:
+  build-push:
+    name: Build and Push Adapter Image
+    runs-on: ubuntu-latest
+    environment: Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout Akvo composite actions
+        uses: actions/checkout@v4
+        with:
+          repository: akvo/composite-actions
+          token: ${{ secrets.GH_PAT }}
+          path: composite-actions
+          ref: 0.0.10
+
+      - name: Docker Build Adapter
+        uses: ./composite-actions/.github/actions/docker-build
+        with:
+          app-name: "dhis2-liberia"
+          service-name: "adapter"
+          dockerfile-location: "adapter"
+          cluster-name: "test"
+
+      - name: Docker Push Adapter
+        uses: ./composite-actions/.github/actions/docker-push
+        with:
+          app-name: "dhis2-liberia"
+          service-name: "adapter"
+          gcloud-sa: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_REGISTRY }}
+          cluster-name: "test"
+
+  rollout:
+    name: Rollout Adapter to Test Cluster
+    needs: build-push
+    runs-on: ubuntu-latest
+    environment: Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout Akvo composite actions
+        uses: actions/checkout@v4
+        with:
+          repository: akvo/composite-actions
+          token: ${{ secrets.GH_PAT }}
+          path: composite-actions
+          ref: 0.0.10
+
+      - name: Rollout Adapter
+        uses: ./composite-actions/.github/actions/k8s-rollout
+        with:
+          app-name: "dhis2-liberia"
+          deployment-name: "sunbird-adapter"
+          container-name: "adapter"
+          cluster-name: "test"
+          namespace-name: "dhis2-liberia-namespace"
+          gcloud-sa: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_K8S }}
