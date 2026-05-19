@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-05-12T12:32:38.559Z\n"
-"PO-Revision-Date: 2026-05-12T12:32:38.559Z\n"
+"POT-Creation-Date: 2026-05-19T12:18:32.292Z\n"
+"PO-Revision-Date: 2026-05-19T12:18:32.292Z\n"
 
 msgid "Error"
 msgstr "Error"
@@ -29,29 +29,51 @@ msgstr "Configuration Required"
 msgid "Please configure the Sunbird RC connection in Settings before syncing."
 msgstr "Please configure the Sunbird RC connection in Settings before syncing."
 
-msgid "Sync Overview"
-msgstr "Sync Overview"
+msgid "No Entity Mappings"
+msgstr "No Entity Mappings"
 
-msgid "Select Program"
-msgstr "Select Program"
+msgid ""
+"Please create at least one Entity Mapping in Settings to start syncing "
+"facilities."
+msgstr ""
+"Please create at least one Entity Mapping in Settings to start syncing "
+"facilities."
 
-msgid "Choose a program"
-msgstr "Choose a program"
+msgid "Facility Sync Overview"
+msgstr "Facility Sync Overview"
 
-msgid "Total Synced"
-msgstr "Total Synced"
+msgid "Entity Mapping"
+msgstr "Entity Mapping"
+
+msgid "Select a mapping"
+msgstr "Select a mapping"
+
+msgid "Total Facilities"
+msgstr "Total Facilities"
+
+msgid "Synced"
+msgstr "Synced"
+
+msgid "complete"
+msgstr "complete"
 
 msgid "Pending"
 msgstr "Pending"
 
-msgid "Errors"
-msgstr "Errors"
+msgid "Ready to sync"
+msgstr "Ready to sync"
 
 msgid "Last Sync"
 msgstr "Last Sync"
 
 msgid "Never"
 msgstr "Never"
+
+msgid "Sync Progress"
+msgstr "Sync Progress"
+
+msgid "{{synced}} of {{total}} facilities synced to Sunbird RC"
+msgstr "{{synced}} of {{total}} facilities synced to Sunbird RC"
 
 msgid "Success"
 msgstr "Success"
@@ -80,6 +102,9 @@ msgstr "Timestamp"
 msgid "Records"
 msgstr "Records"
 
+msgid "Errors"
+msgstr "Errors"
+
 msgid "Status"
 msgstr "Status"
 
@@ -91,9 +116,6 @@ msgstr "Hide"
 
 msgid "View"
 msgstr "View"
-
-msgid "New Program"
-msgstr "New Program"
 
 msgid "Sunbird URL is required"
 msgstr "Sunbird URL is required"
@@ -107,11 +129,29 @@ msgstr "Client ID is required"
 msgid "Client Secret is required"
 msgstr "Client Secret is required"
 
+msgid "Are you sure you want to delete this mapping?"
+msgstr "Are you sure you want to delete this mapping?"
+
+msgid "Entity Type is required"
+msgstr "Entity Type is required"
+
+msgid "At least one Org Unit Group is required"
+msgstr "At least one Org Unit Group is required"
+
 msgid "Sunbird RC Settings"
 msgstr "Sunbird RC Settings"
 
-msgid "Worker-Based Sync"
-msgstr "Worker-Based Sync"
+msgid "Org Unit-Based Sync"
+msgstr "Org Unit-Based Sync"
+
+msgid ""
+"Facilities are synced as Organisation Units. Configure the connection "
+"below, then create Entity Mappings to link Org Unit Groups to Sunbird "
+"Entity Types."
+msgstr ""
+"Facilities are synced as Organisation Units. Configure the connection "
+"below, then create Entity Mappings to link Org Unit Groups to Sunbird "
+"Entity Types."
 
 msgid "Validation Error"
 msgstr "Validation Error"
@@ -122,69 +162,20 @@ msgstr "Connection Settings"
 msgid "Sunbird RC Base URL"
 msgstr "Sunbird RC Base URL"
 
-msgid "Base URL of Sunbird RC (must be accessible from the worker server)"
-msgstr "Base URL of Sunbird RC (must be accessible from the worker server)"
+msgid "Base URL of Sunbird RC API"
+msgstr "Base URL of Sunbird RC API"
 
 msgid "Keycloak Token URL"
 msgstr "Keycloak Token URL"
 
-msgid "Keycloak token endpoint (must be accessible from the worker server)"
-msgstr "Keycloak token endpoint (must be accessible from the worker server)"
+msgid "Keycloak token endpoint"
+msgstr "Keycloak token endpoint"
 
 msgid "Client ID"
 msgstr "Client ID"
 
-msgid "OAuth2 client ID for Sunbird RC authentication"
-msgstr "OAuth2 client ID for Sunbird RC authentication"
-
 msgid "Client Secret"
 msgstr "Client Secret"
-
-msgid "OAuth2 client secret for Sunbird RC authentication"
-msgstr "OAuth2 client secret for Sunbird RC authentication"
-
-msgid "Program Mappings"
-msgstr "Program Mappings"
-
-msgid "All programs are already configured"
-msgstr "All programs are already configured"
-
-msgid "Add Program"
-msgstr "Add Program"
-
-msgid "No Programs Configured"
-msgstr "No Programs Configured"
-
-msgid ""
-"Click \"Add Program\" to configure a DHIS2 program for syncing to Sunbird "
-"RC."
-msgstr ""
-"Click \"Add Program\" to configure a DHIS2 program for syncing to Sunbird "
-"RC."
-
-msgid "Disabled"
-msgstr "Disabled"
-
-msgid "Edit program"
-msgstr "Edit program"
-
-msgid "Remove program"
-msgstr "Remove program"
-
-msgid "DHIS2 Program"
-msgstr "DHIS2 Program"
-
-msgid "Select a program"
-msgstr "Select a program"
-
-msgid "Sunbird Entity Type"
-msgstr "Sunbird Entity Type"
-
-msgid "The entity type in Sunbird RC (e.g., WaterFacility, Student)"
-msgstr "The entity type in Sunbird RC (e.g., WaterFacility, Student)"
-
-msgid "Enabled"
-msgstr "Enabled"
 
 msgid "Saving..."
 msgstr "Saving..."
@@ -192,41 +183,121 @@ msgstr "Saving..."
 msgid "Saved!"
 msgstr "Saved!"
 
-msgid "Save Settings"
-msgstr "Save Settings"
+msgid "Save Connection"
+msgstr "Save Connection"
 
-msgid "Synced"
-msgstr "Synced"
+msgid "Entity Mappings"
+msgstr "Entity Mappings"
 
-msgid "Loading tracked entities..."
-msgstr "Loading tracked entities..."
+msgid "Add Mapping"
+msgstr "Add Mapping"
 
-msgid "Sync to Sunbird RC"
-msgstr "Sync to Sunbird RC"
+msgid "No Mappings Configured"
+msgstr "No Mappings Configured"
+
+msgid ""
+"Click \"Add Mapping\" to configure which Org Unit Groups sync to which "
+"Sunbird Entity Types."
+msgstr ""
+"Click \"Add Mapping\" to configure which Org Unit Groups sync to which "
+"Sunbird Entity Types."
+
+msgid "New Entity Mapping"
+msgstr "New Entity Mapping"
+
+msgid "Sunbird Entity Type"
+msgstr "Sunbird Entity Type"
+
+msgid "The entity type name in Sunbird RC"
+msgstr "The entity type name in Sunbird RC"
+
+msgid "Org Unit Groups"
+msgstr "Org Unit Groups"
+
+msgid "Select groups from the left"
+msgstr "Select groups from the left"
+
+msgid "Available Groups"
+msgstr "Available Groups"
+
+msgid "Selected Groups"
+msgstr "Selected Groups"
+
+msgid "Field Mappings"
+msgstr "Field Mappings"
+
+msgid "Add Field"
+msgstr "Add Field"
+
+msgid "DHIS2 Source"
+msgstr "DHIS2 Source"
+
+msgid "Sunbird Target"
+msgstr "Sunbird Target"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Select source"
+msgstr "Select source"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Save Mapping"
+msgstr "Save Mapping"
+
+msgid ""
+"Please create at least one Entity Mapping in Settings to define which Org "
+"Unit Groups sync to Sunbird."
+msgstr ""
+"Please create at least one Entity Mapping in Settings to define which Org "
+"Unit Groups sync to Sunbird."
+
+msgid "Sync Facilities to Sunbird RC"
+msgstr "Sync Facilities to Sunbird RC"
 
 msgid "Syncing..."
 msgstr "Syncing..."
 
-msgid "Choose a program to sync"
-msgstr "Choose a program to sync"
+msgid "Select an entity mapping"
+msgstr "Select an entity mapping"
+
+msgid "Status Filter"
+msgstr "Status Filter"
 
 msgid "Queuing sync request..."
 msgstr "Queuing sync request..."
 
-msgid "Please select a program above to view tracked entities."
-msgstr "Please select a program above to view tracked entities."
+msgid "Loading facilities..."
+msgstr "Loading facilities..."
 
-msgid "No tracked entities found for the selected program."
-msgstr "No tracked entities found for the selected program."
+msgid "Select an entity mapping above to view facilities."
+msgstr "Select an entity mapping above to view facilities."
 
-msgid "Name"
-msgstr "Name"
+msgid "No facilities found for the selected mapping."
+msgstr "No facilities found for the selected mapping."
 
-msgid "Organisation Unit"
-msgstr "Organisation Unit"
+msgid "No pending facilities. All facilities have been synced!"
+msgstr "No pending facilities. All facilities have been synced!"
 
-msgid "Last Updated"
-msgstr "Last Updated"
+msgid "No synced facilities yet."
+msgstr "No synced facilities yet."
+
+msgid "Facility Name"
+msgstr "Facility Name"
+
+msgid "Code"
+msgstr "Code"
+
+msgid "Location"
+msgstr "Location"
+
+msgid "Sync Details"
+msgstr "Sync Details"
+
+msgid "Entity Type"
+msgstr "Entity Type"
 
 msgctxt "Application title"
 msgid "__MANIFEST_APP_TITLE"

@@ -25,6 +25,10 @@
     min-height: 120px;
 }
 
+.pendingCard {
+    border-left: 4px solid var(--colors-yellow500);
+}
+
 .cardContent {
     padding: 16px;
 }
@@ -44,6 +48,12 @@
     color: var(--colors-grey900);
 }
 
+.statSubtext {
+    font-size: 12px;
+    color: var(--colors-grey600);
+    margin-top: 4px;
+}
+
 .statTime {
     font-size: 16px;
     color: var(--colors-grey800);
@@ -60,7 +70,41 @@
     margin: 0;
 }
 
-.programSelector {
+.mappingSelector {
     margin-top: 16px;
     max-width: 400px;
+}
+
+.progressSection {
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--colors-grey100);
+    border-radius: 4px;
+}
+
+.progressLabel {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--colors-grey800);
+    margin-bottom: 8px;
+}
+
+.progressBar {
+    height: 8px;
+    background: var(--colors-grey300);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: var(--colors-teal500);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progressText {
+    font-size: 13px;
+    color: var(--colors-grey700);
+    margin-top: 8px;
 }

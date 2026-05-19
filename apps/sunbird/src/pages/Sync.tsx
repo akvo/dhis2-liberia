@@ -16,50 +16,58 @@ import {
     SingleSelect,
     SingleSelectOption,
     Field,
+    SegmentedControl,
 } from '@dhis2/ui'
-import React, { FC, useState } from 'react'
-import type { ProgramConfig } from './Settings'
+import React, { FC, useState, useMemo } from 'react'
+import type { EntityMapping, FacilityRecord, SyncStats, OrgUnitGroup } from '@/types'
 import classes from './Sync.module.css'
 
-export interface TEIRecord {
-    id: string
-    displayName: string
-    orgUnit: string
-    lastUpdated: string
-    syncStatus: 'pending' | 'synced' | 'error'
-    errorMessage?: string
-}
-
 interface SyncProps {
-    records?: TEIRecord[]
+    records: FacilityRecord[]
+    stats: SyncStats
     loading?: boolean
     syncing?: boolean
     isConfigured?: boolean
-    programs?: ProgramConfig[]
-    dhis2Programs?: Array<{ id: string; displayName: string }>
-    selectedProgramId?: string
-    onProgramChange: (programId: string) => void
+    entityMappings: EntityMapping[]
+    orgUnitGroups: OrgUnitGroup[]
+    selectedMappingId?: string
+    statusFilter: 'all' | 'pending' | 'synced'
+    onMappingChange: (mappingId: string) => void
+    onStatusFilterChange: (status: 'all' | 'pending' | 'synced') => void
     onSync: (selectedIds: string[]) => void
     onRefresh: () => void
 }
 
 const Sync: FC<SyncProps> = ({
     records = [],
+    stats,
     loading = false,
     syncing = false,
     isConfigured = false,
-    programs = [],
-    dhis2Programs = [],
-    selectedProgramId,
-    onProgramChange,
+    entityMappings = [],
+    orgUnitGroups = [],
+    selectedMappingId,
+    statusFilter,
+    onMappingChange,
+    onStatusFilterChange,
     onSync,
     onRefresh,
 }) => {
-    const getProgramDisplayName = (programId: string): string => {
-        const dhis2Program = dhis2Programs.find(p => p.id === programId)
-        return dhis2Program?.displayName || programId
-    }
     const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+    const selectedMapping = useMemo(() => {
+        return entityMappings.find((m) => m.id === selectedMappingId)
+    }, [entityMappings, selectedMappingId])
+
+    const getMappingLabel = (mapping: EntityMapping): string => {
+        const groupNames = mapping.orgUnitGroupIds
+            .map((gid) => {
+                const group = orgUnitGroups.find((g) => g.id === gid)
+                return group?.displayName || gid
+            })
+            .join(', ')
+        return `${mapping.entityType} (${groupNames})`
+    }
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
@@ -83,14 +91,13 @@ const Sync: FC<SyncProps> = ({
                 ? selectedIds
                 : records.filter((r) => r.syncStatus === 'pending').map((r) => r.id)
         onSync(idsToSync)
+        setSelectedIds([])
     }
 
-    const getStatusTag = (status: TEIRecord['syncStatus']) => {
+    const getStatusTag = (status: FacilityRecord['syncStatus']) => {
         switch (status) {
             case 'synced':
                 return <Tag positive>{i18n.t('Synced')}</Tag>
-            case 'error':
-                return <Tag negative>{i18n.t('Error')}</Tag>
             default:
                 return <Tag neutral>{i18n.t('Pending')}</Tag>
         }
@@ -108,31 +115,32 @@ const Sync: FC<SyncProps> = ({
         )
     }
 
-    if (loading) {
+    if (entityMappings.length === 0) {
         return (
-            <div className={classes.loadingContainer}>
-                <CircularLoader />
-                <p>{i18n.t('Loading tracked entities...')}</p>
+            <div className={classes.container}>
+                <NoticeBox warning title={i18n.t('No Entity Mappings')}>
+                    {i18n.t(
+                        'Please create at least one Entity Mapping in Settings to define which Org Unit Groups sync to Sunbird.'
+                    )}
+                </NoticeBox>
             </div>
         )
     }
 
-    const pendingCount = records.filter((r) => r.syncStatus === 'pending').length
-
-    const enabledPrograms = programs.filter(p => p.enabled)
+    const pendingCount = stats.pending
 
     return (
         <div className={classes.container}>
             <div className={classes.header}>
-                <h2>{i18n.t('Sync to Sunbird RC')}</h2>
+                <h2>{i18n.t('Sync Facilities to Sunbird RC')}</h2>
                 <div className={classes.actions}>
-                    <Button onClick={onRefresh} disabled={syncing}>
+                    <Button onClick={onRefresh} disabled={syncing || loading}>
                         {i18n.t('Refresh')}
                     </Button>
                     <Button
                         primary
                         onClick={handleSync}
-                        disabled={syncing || pendingCount === 0 || !selectedProgramId}
+                        disabled={syncing || pendingCount === 0 || !selectedMappingId}
                     >
                         {syncing
                             ? i18n.t('Syncing...')
@@ -147,25 +155,55 @@ const Sync: FC<SyncProps> = ({
                 </div>
             </div>
 
-            {enabledPrograms.length > 0 && (
-                <div className={classes.programSelector}>
-                    <Field label={i18n.t('Select Program')}>
+            <div className={classes.filterRow}>
+                <div className={classes.mappingSelector}>
+                    <Field label={i18n.t('Entity Mapping')}>
                         <SingleSelect
-                            selected={selectedProgramId}
-                            onChange={({ selected }) => onProgramChange(selected || '')}
-                            placeholder={i18n.t('Choose a program to sync')}
+                            selected={selectedMappingId}
+                            onChange={({ selected }) => {
+                                onMappingChange(selected || '')
+                                setSelectedIds([])
+                            }}
+                            placeholder={i18n.t('Select an entity mapping')}
                         >
-                            {enabledPrograms.map((prog) => (
+                            {entityMappings.map((mapping) => (
                                 <SingleSelectOption
-                                    key={prog.programId}
-                                    label={`${getProgramDisplayName(prog.programId)} → ${prog.entityType}`}
-                                    value={prog.programId}
+                                    key={mapping.id}
+                                    label={getMappingLabel(mapping)}
+                                    value={mapping.id}
                                 />
                             ))}
                         </SingleSelect>
                     </Field>
                 </div>
-            )}
+
+                {selectedMappingId && (
+                    <div className={classes.statusFilter}>
+                        <Field label={i18n.t('Status Filter')}>
+                            <SegmentedControl
+                                selected={statusFilter}
+                                onChange={({ value }) =>
+                                    onStatusFilterChange(value as 'all' | 'pending' | 'synced')
+                                }
+                                options={[
+                                    {
+                                        value: 'all',
+                                        label: i18n.t('All ({{count}})', { count: stats.total }),
+                                    },
+                                    {
+                                        value: 'pending',
+                                        label: i18n.t('Pending ({{count}})', { count: stats.pending }),
+                                    },
+                                    {
+                                        value: 'synced',
+                                        label: i18n.t('Synced ({{count}})', { count: stats.synced }),
+                                    },
+                                ]}
+                            />
+                        </Field>
+                    </div>
+                )}
+            </div>
 
             {syncing && (
                 <div className={classes.progressContainer}>
@@ -174,16 +212,27 @@ const Sync: FC<SyncProps> = ({
                 </div>
             )}
 
-            {!selectedProgramId ? (
+            {loading ? (
+                <div className={classes.loadingContainer}>
+                    <CircularLoader />
+                    <p>{i18n.t('Loading facilities...')}</p>
+                </div>
+            ) : !selectedMappingId ? (
                 <Card>
                     <div className={classes.emptyState}>
-                        <p>{i18n.t('Please select a program above to view tracked entities.')}</p>
+                        <p>{i18n.t('Select an entity mapping above to view facilities.')}</p>
                     </div>
                 </Card>
             ) : records.length === 0 ? (
                 <Card>
                     <div className={classes.emptyState}>
-                        <p>{i18n.t('No tracked entities found for the selected program.')}</p>
+                        <p>
+                            {statusFilter === 'all'
+                                ? i18n.t('No facilities found for the selected mapping.')
+                                : statusFilter === 'pending'
+                                  ? i18n.t('No pending facilities. All facilities have been synced!')
+                                  : i18n.t('No synced facilities yet.')}
+                        </p>
                     </div>
                 </Card>
             ) : (
@@ -194,30 +243,18 @@ const Sync: FC<SyncProps> = ({
                                 <DataTableColumnHeader width="48px">
                                     <Checkbox
                                         checked={
-                                            selectedIds.length === records.length &&
-                                            records.length > 0
+                                            selectedIds.length === records.length && records.length > 0
                                         }
                                         indeterminate={
-                                            selectedIds.length > 0 &&
-                                            selectedIds.length < records.length
+                                            selectedIds.length > 0 && selectedIds.length < records.length
                                         }
-                                        onChange={({ checked }) =>
-                                            handleSelectAll(checked)
-                                        }
+                                        onChange={({ checked }) => handleSelectAll(checked)}
                                     />
                                 </DataTableColumnHeader>
-                                <DataTableColumnHeader>
-                                    {i18n.t('Name')}
-                                </DataTableColumnHeader>
-                                <DataTableColumnHeader>
-                                    {i18n.t('Organisation Unit')}
-                                </DataTableColumnHeader>
-                                <DataTableColumnHeader>
-                                    {i18n.t('Last Updated')}
-                                </DataTableColumnHeader>
-                                <DataTableColumnHeader>
-                                    {i18n.t('Status')}
-                                </DataTableColumnHeader>
+                                <DataTableColumnHeader>{i18n.t('Facility Name')}</DataTableColumnHeader>
+                                <DataTableColumnHeader>{i18n.t('Code')}</DataTableColumnHeader>
+                                <DataTableColumnHeader>{i18n.t('Location')}</DataTableColumnHeader>
+                                <DataTableColumnHeader>{i18n.t('Status')}</DataTableColumnHeader>
                             </DataTableRow>
                         </DataTableHead>
                         <DataTableBody>
@@ -225,28 +262,21 @@ const Sync: FC<SyncProps> = ({
                                 <DataTableRow key={record.id}>
                                     <DataTableCell>
                                         <Checkbox
-                                            checked={selectedIds.includes(
-                                                record.id
-                                            )}
-                                            onChange={({ checked }) =>
-                                                handleSelect(record.id, checked)
-                                            }
+                                            checked={selectedIds.includes(record.id)}
+                                            onChange={({ checked }) => handleSelect(record.id, checked)}
+                                            disabled={record.syncStatus === 'synced'}
                                         />
                                     </DataTableCell>
+                                    <DataTableCell>{record.name}</DataTableCell>
                                     <DataTableCell>
-                                        {record.displayName}
+                                        <code>{record.code || '-'}</code>
                                     </DataTableCell>
-                                    <DataTableCell>
-                                        {record.orgUnit}
-                                    </DataTableCell>
-                                    <DataTableCell>
-                                        {record.lastUpdated}
-                                    </DataTableCell>
+                                    <DataTableCell>{record.location || '-'}</DataTableCell>
                                     <DataTableCell>
                                         {getStatusTag(record.syncStatus)}
-                                        {record.errorMessage && (
-                                            <span className={classes.errorText}>
-                                                {record.errorMessage}
+                                        {record.osid && (
+                                            <span className={classes.osidText}>
+                                                OSID: {record.osid.substring(0, 8)}...
                                             </span>
                                         )}
                                     </DataTableCell>
@@ -255,6 +285,19 @@ const Sync: FC<SyncProps> = ({
                         </DataTableBody>
                     </DataTable>
                 </Card>
+            )}
+
+            {selectedMapping && (
+                <div className={classes.mappingInfo}>
+                    <NoticeBox title={i18n.t('Sync Details')}>
+                        <p>
+                            {i18n.t('Entity Type')}: <strong>{selectedMapping.entityType}</strong>
+                        </p>
+                        <p>
+                            {i18n.t('Field Mappings')}: {selectedMapping.fieldMappings.length}
+                        </p>
+                    </NoticeBox>
+                </div>
             )}
         </div>
     )

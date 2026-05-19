@@ -7,8 +7,8 @@ const QUEUE_KEY = 'queue'
 interface SyncRequest {
     id: string
     type: 'all' | 'selected'
-    programId: string
-    teiIds?: string[]
+    mappingId: string
+    orgUnitIds?: string[]
     status: 'pending' | 'processing' | 'completed'
     createdAt: string
 }
@@ -41,7 +41,7 @@ const updateQueueMutation = {
 }
 
 interface UseSyncQueueResult {
-    queueSyncRequest: (programId: string, teiIds?: string[]) => Promise<string>
+    queueSyncRequest: (mappingId: string, orgUnitIds?: string[]) => Promise<string>
     loading: boolean
     error: Error | null
 }
@@ -58,7 +58,7 @@ export const useSyncQueue = (): UseSyncQueueResult => {
     const [updateMutation] = useDataMutation(updateQueueMutation)
 
     const queueSyncRequest = useCallback(
-        async (programId: string, teiIds?: string[]): Promise<string> => {
+        async (mappingId: string, orgUnitIds?: string[]): Promise<string> => {
             setLoading(true)
             setError(null)
 
@@ -68,9 +68,9 @@ export const useSyncQueue = (): UseSyncQueueResult => {
 
                 const newRequest: SyncRequest = {
                     id: requestId,
-                    type: teiIds && teiIds.length > 0 ? 'selected' : 'all',
-                    programId,
-                    teiIds: teiIds && teiIds.length > 0 ? teiIds : undefined,
+                    type: orgUnitIds && orgUnitIds.length > 0 ? 'selected' : 'all',
+                    mappingId,
+                    orgUnitIds: orgUnitIds && orgUnitIds.length > 0 ? orgUnitIds : undefined,
                     status: 'pending',
                     createdAt: new Date().toISOString(),
                 }
@@ -95,7 +95,7 @@ export const useSyncQueue = (): UseSyncQueueResult => {
                     requests: [...(currentQueue.requests || []), newRequest],
                 }
 
-                // Save queue - use local `exists` variable, not stale state
+                // Save queue
                 if (exists) {
                     await updateMutation({ queue: updatedQueue })
                 } else {

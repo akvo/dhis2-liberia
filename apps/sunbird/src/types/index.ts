@@ -1,0 +1,61 @@
+// Sunbird RC connection config
+export interface SunbirdConfig {
+    sunbirdUrl: string
+    keycloakUrl: string
+    clientId: string
+    clientSecret: string
+}
+
+// Field mapping for transformation
+export interface FieldMapping {
+    source: string
+    target: string
+    required?: boolean
+}
+
+// Entity mapping - maps org unit groups to Sunbird entity type
+export interface EntityMapping {
+    id: string
+    entityType: string
+    orgUnitGroupIds: string[]
+    fieldMappings: FieldMapping[]
+}
+
+// Org unit group from DHIS2
+export interface OrgUnitGroup {
+    id: string
+    displayName: string
+    code: string
+}
+
+// Facility org unit record for display
+export interface FacilityRecord {
+    id: string
+    name: string
+    code: string
+    location: string // Hierarchy: County > District > Community
+    coordinates?: { lon: number; lat: number }
+    syncStatus: 'pending' | 'synced'
+    osid?: string
+}
+
+// Sync stats
+export interface SyncStats {
+    total: number
+    synced: number
+    pending: number
+    lastSync?: string
+}
+
+// Available source fields for field mapping
+export const SOURCE_FIELDS = [
+    { value: 'name', label: 'Name' },
+    { value: 'code', label: 'Code' },
+    { value: 'shortName', label: 'Short Name' },
+    { value: 'geometry.coordinates', label: 'Coordinates' },
+    { value: 'openingDate', label: 'Opening Date' },
+    { value: 'parent.name', label: 'Parent Name' },
+    { value: 'parent[level=2].name', label: 'County (Level 2)' },
+    { value: 'parent[level=3].name', label: 'District (Level 3)' },
+    { value: 'parent[level=4].name', label: 'Community (Level 4)' },
+]

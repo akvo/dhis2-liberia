@@ -29,6 +29,24 @@
     gap: 8px;
 }
 
+.filterRow {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.mappingSelector {
+    min-width: 300px;
+    flex: 1;
+    max-width: 400px;
+}
+
+.statusFilter {
+    flex-shrink: 0;
+}
+
 .progressContainer {
     margin-bottom: 16px;
     padding: 16px;
@@ -55,17 +73,18 @@
     margin-top: 4px;
 }
 
-.codeBlock {
-    background: var(--colors-grey200);
-    padding: 8px 12px;
-    border-radius: 4px;
+.osidText {
+    display: block;
+    font-size: 11px;
+    color: var(--colors-grey600);
+    margin-top: 4px;
     font-family: monospace;
-    font-size: 13px;
-    margin: 8px 0;
-    overflow-x: auto;
 }
 
-.programSelector {
-    margin-bottom: 16px;
-    max-width: 400px;
+.mappingInfo {
+    margin-top: 16px;
+}
+
+.mappingInfo p {
+    margin: 4px 0;
 }
