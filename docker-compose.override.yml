@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  pgadmin:
+    image: dpage/pgadmin4:9.7.0
+    container_name: dhis2-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-dev@akvo.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-password}
+      PGADMIN_LISTEN_PORT: 5050
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./pgadmin4/servers.json:/pgadmin4/servers.json
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - dhis2-network
+    depends_on:
+      - db
+
+volumes:
+  pgadmin-data:
