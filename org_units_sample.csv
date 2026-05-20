@@ -1,16 +1,18 @@
 name,short_name,code,level,parent_code
 Liberia,Liberia,LR,1,
-Montserrado County,Montserrado,LR_MON,2,LR
-Nimba County,Nimba,LR_NIM,2,LR
-Greater Monrovia District,Greater Monrovia,LR_MON_GM,3,LR_MON
-St. Paul River District,St. Paul River,LR_MON_SPR,3,LR_MON
-Sanniquellie-Mahn District,Sanniquellie-Mahn,LR_NIM_SM,3,LR_NIM
-Saclepea-Mahn District,Saclepea-Mahn,LR_NIM_SAC,3,LR_NIM
-Congo Town Clan,Congo Town,LR_MON_GM_CT,4,LR_MON_GM
-Paynesville Clan,Paynesville,LR_MON_GM_PV,4,LR_MON_GM
-Johnsonville Clan,Johnsonville,LR_MON_SPR_JV,4,LR_MON_SPR
-Gardnersville Clan,Gardnersville,LR_MON_SPR_GV,4,LR_MON_SPR
-Sanniquellie Clan,Sanniquellie,LR_NIM_SM_SQ,4,LR_NIM_SM
-Karnplay Clan,Karnplay,LR_NIM_SM_KP,4,LR_NIM_SM
-Saclepea Clan,Saclepea,LR_NIM_SAC_SC,4,LR_NIM_SAC
-Ganta Clan,Ganta,LR_NIM_SAC_GT,4,LR_NIM_SAC
+Montserrado,Montserrado,LR_MONT,2,LR
+Grand Bassa,Grand Bassa,LR_GBAS,2,LR
+Bong,Bong,LR_BONG,2,LR
+Greater Monrovia,Gr Monrovia,LR_MONT_GM,3,LR_MONT
+St. Paul River,St Paul River,LR_MONT_SP,3,LR_MONT
+Buchanan,Buchanan,LR_GBAS_BU,3,LR_GBAS
+District 3,District 3,LR_GBAS_D3,3,LR_GBAS
+Gbarnga,Gbarnga,LR_BONG_GB,3,LR_BONG
+Jorquelleh,Jorquelleh,LR_BONG_JQ,3,LR_BONG
+Paynesville,Paynesville,LR_MONT_GM_PV,4,LR_MONT_GM
+Congo Town,Congo Town,LR_MONT_GM_CT,4,LR_MONT_GM
+New Georgia,New Georgia,LR_MONT_SP_NG,4,LR_MONT_SP
+Buchanan City,Buchanan City,LR_GBAS_BU_BC,4,LR_GBAS_BU
+LAC,LAC,LR_GBAS_D3_LC,4,LR_GBAS_D3
+Gbarnga City,Gbarnga City,LR_BONG_GB_GC,4,LR_BONG_GB
+Salala,Salala,LR_BONG_JQ_SL,4,LR_BONG_JQ
