@@ -4,6 +4,7 @@ export interface SunbirdConfig {
     keycloakUrl: string
     clientId: string
     clientSecret: string
+    osidAttributeId: string // DHIS2 attribute to store Sunbird OSID
 }
 
 // Field mapping for transformation
@@ -48,14 +49,18 @@ export interface SyncStats {
 }
 
 // Available source fields for field mapping
+// Note: GeoJSON coordinates are [longitude, latitude]
 export const SOURCE_FIELDS = [
     { value: 'name', label: 'Name' },
     { value: 'code', label: 'Code' },
     { value: 'shortName', label: 'Short Name' },
-    { value: 'geometry.coordinates', label: 'Coordinates' },
+    { value: 'geometry.coordinates[1]', label: 'Latitude' },
+    { value: 'geometry.coordinates[0]', label: 'Longitude' },
     { value: 'openingDate', label: 'Opening Date' },
     { value: 'parent.name', label: 'Parent Name' },
     { value: 'parent[level=2].name', label: 'County (Level 2)' },
     { value: 'parent[level=3].name', label: 'District (Level 3)' },
     { value: 'parent[level=4].name', label: 'Community (Level 4)' },
+    { value: 'organisationUnitGroup.name', label: 'Facility Type (Group Name)' },
+    { value: 'organisationUnitGroup.code', label: 'Facility Type (Group Code)' },
 ]

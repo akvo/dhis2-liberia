@@ -3,14 +3,15 @@ import { TabBar, Tab } from '@dhis2/ui'
 import React, { FC } from 'react'
 import classes from './Navigation.module.css'
 
-export type PageKey = 'dashboard' | 'sync' | 'history' | 'settings'
+export type PageKey = 'dashboard' | 'sync' | 'history' | 'mappings' | 'settings'
 
 interface NavigationProps {
     currentPage: PageKey
     onNavigate: (page: PageKey) => void
+    isConfigured?: boolean
 }
 
-const Navigation: FC<NavigationProps> = ({ currentPage, onNavigate }) => {
+const Navigation: FC<NavigationProps> = ({ currentPage, onNavigate, isConfigured = false }) => {
     return (
         <div className={classes.container}>
             <TabBar>
@@ -38,6 +39,14 @@ const Navigation: FC<NavigationProps> = ({ currentPage, onNavigate }) => {
                 >
                     {i18n.t('Settings')}
                 </Tab>
+                {isConfigured && (
+                    <Tab
+                        selected={currentPage === 'mappings'}
+                        onClick={() => onNavigate('mappings')}
+                    >
+                        {i18n.t('Mappings')}
+                    </Tab>
+                )}
             </TabBar>
         </div>
     )

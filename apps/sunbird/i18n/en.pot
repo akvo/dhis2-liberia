@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-05-19T12:18:32.292Z\n"
-"PO-Revision-Date: 2026-05-19T12:18:32.292Z\n"
+"POT-Creation-Date: 2026-05-20T22:06:40.106Z\n"
+"PO-Revision-Date: 2026-05-20T22:06:40.106Z\n"
 
 msgid "Error"
 msgstr "Error"
@@ -22,6 +22,9 @@ msgstr "History"
 
 msgid "Settings"
 msgstr "Settings"
+
+msgid "Mappings"
+msgstr "Mappings"
 
 msgid "Configuration Required"
 msgstr "Configuration Required"
@@ -117,18 +120,6 @@ msgstr "Hide"
 msgid "View"
 msgstr "View"
 
-msgid "Sunbird URL is required"
-msgstr "Sunbird URL is required"
-
-msgid "Keycloak URL is required"
-msgstr "Keycloak URL is required"
-
-msgid "Client ID is required"
-msgstr "Client ID is required"
-
-msgid "Client Secret is required"
-msgstr "Client Secret is required"
-
 msgid "Are you sure you want to delete this mapping?"
 msgstr "Are you sure you want to delete this mapping?"
 
@@ -138,56 +129,18 @@ msgstr "Entity Type is required"
 msgid "At least one Org Unit Group is required"
 msgstr "At least one Org Unit Group is required"
 
-msgid "Sunbird RC Settings"
-msgstr "Sunbird RC Settings"
-
-msgid "Org Unit-Based Sync"
-msgstr "Org Unit-Based Sync"
-
-msgid ""
-"Facilities are synced as Organisation Units. Configure the connection "
-"below, then create Entity Mappings to link Org Unit Groups to Sunbird "
-"Entity Types."
-msgstr ""
-"Facilities are synced as Organisation Units. Configure the connection "
-"below, then create Entity Mappings to link Org Unit Groups to Sunbird "
-"Entity Types."
-
-msgid "Validation Error"
-msgstr "Validation Error"
-
-msgid "Connection Settings"
-msgstr "Connection Settings"
-
-msgid "Sunbird RC Base URL"
-msgstr "Sunbird RC Base URL"
-
-msgid "Base URL of Sunbird RC API"
-msgstr "Base URL of Sunbird RC API"
-
-msgid "Keycloak Token URL"
-msgstr "Keycloak Token URL"
-
-msgid "Keycloak token endpoint"
-msgstr "Keycloak token endpoint"
-
-msgid "Client ID"
-msgstr "Client ID"
-
-msgid "Client Secret"
-msgstr "Client Secret"
-
-msgid "Saving..."
-msgstr "Saving..."
-
-msgid "Saved!"
-msgstr "Saved!"
-
-msgid "Save Connection"
-msgstr "Save Connection"
-
 msgid "Entity Mappings"
 msgstr "Entity Mappings"
+
+msgid "Configure Sync Mappings"
+msgstr "Configure Sync Mappings"
+
+msgid ""
+"Map Org Unit Groups to Sunbird Entity Types. Each mapping defines which "
+"facilities sync to which Sunbird entity and how fields are transformed."
+msgstr ""
+"Map Org Unit Groups to Sunbird Entity Types. Each mapping defines which "
+"facilities sync to which Sunbird entity and how fields are transformed."
 
 msgid "Add Mapping"
 msgstr "Add Mapping"
@@ -202,6 +155,18 @@ msgstr ""
 "Click \"Add Mapping\" to configure which Org Unit Groups sync to which "
 "Sunbird Entity Types."
 
+msgid "Edit"
+msgstr "Edit"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Please enter an Entity Type first"
+msgstr "Please enter an Entity Type first"
+
+msgid "Sunbird URL is not configured. Please configure it in Settings."
+msgstr "Sunbird URL is not configured. Please configure it in Settings."
+
 msgid "New Entity Mapping"
 msgstr "New Entity Mapping"
 
@@ -210,6 +175,18 @@ msgstr "Sunbird Entity Type"
 
 msgid "The entity type name in Sunbird RC"
 msgstr "The entity type name in Sunbird RC"
+
+msgid "Fetch Schema"
+msgstr "Fetch Schema"
+
+msgid "Schema Error"
+msgstr "Schema Error"
+
+msgid "Schema Loaded"
+msgstr "Schema Loaded"
+
+msgid "All required fields are mapped."
+msgstr "All required fields are mapped."
 
 msgid "Org Unit Groups"
 msgstr "Org Unit Groups"
@@ -241,11 +218,85 @@ msgstr "Actions"
 msgid "Select source"
 msgstr "Select source"
 
+msgid "Select target field"
+msgstr "Select target field"
+
 msgid "Cancel"
 msgstr "Cancel"
 
 msgid "Save Mapping"
 msgstr "Save Mapping"
+
+msgid "Sunbird URL is required"
+msgstr "Sunbird URL is required"
+
+msgid "Keycloak URL is required"
+msgstr "Keycloak URL is required"
+
+msgid "Client ID is required"
+msgstr "Client ID is required"
+
+msgid "Client Secret is required"
+msgstr "Client Secret is required"
+
+msgid "OSID Attribute is required"
+msgstr "OSID Attribute is required"
+
+msgid "Sunbird RC Settings"
+msgstr "Sunbird RC Settings"
+
+msgid "Connection Configuration"
+msgstr "Connection Configuration"
+
+msgid ""
+"Configure the connection to Sunbird RC. Once saved, the Mappings tab will "
+"become available to configure entity mappings."
+msgstr ""
+"Configure the connection to Sunbird RC. Once saved, the Mappings tab will "
+"become available to configure entity mappings."
+
+msgid "Validation Error"
+msgstr "Validation Error"
+
+msgid "Connection Settings"
+msgstr "Connection Settings"
+
+msgid "Sunbird RC Base URL"
+msgstr "Sunbird RC Base URL"
+
+msgid "Keycloak Token URL"
+msgstr "Keycloak Token URL"
+
+msgid "Keycloak token endpoint"
+msgstr "Keycloak token endpoint"
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "Client Secret"
+msgstr "Client Secret"
+
+msgid "OSID Attribute"
+msgstr "OSID Attribute"
+
+msgid "Select attribute for storing Sunbird OSID"
+msgstr "Select attribute for storing Sunbird OSID"
+
+msgid ""
+"Select which Organisation Unit attribute will store the Sunbird Registry ID "
+"(OSID) after sync."
+msgstr ""
+"Select which Organisation Unit attribute will store the Sunbird Registry ID "
+"(OSID) after sync."
+
+msgid "Saving..."
+msgstr "Saving..."
+
+msgid "Saved!"
+msgstr "Saved!"
+
+msgid "Save Connection"
+msgstr "Save Connection"
 
 msgid ""
 "Please create at least one Entity Mapping in Settings to define which Org "

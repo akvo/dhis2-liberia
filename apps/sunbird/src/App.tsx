@@ -11,7 +11,7 @@ import {
     useFacilityOrgUnits,
     useSyncQueue,
 } from '@/hooks'
-import { Dashboard, Settings, Sync, History } from '@/pages'
+import { Dashboard, Settings, Sync, History, Mappings } from '@/pages'
 import type { SunbirdConfig, EntityMapping } from '@/types'
 
 const MyApp: FC = () => {
@@ -226,17 +226,25 @@ const MyApp: FC = () => {
                         onRefresh={refetchHistory}
                     />
                 )
+            case 'mappings':
+                return (
+                    <Mappings
+                        entityMappings={entityMappings}
+                        orgUnitGroups={orgUnitGroups}
+                        sunbirdUrl={config?.sunbirdUrl}
+                        loading={groupsLoading}
+                        saving={mappingsSaving}
+                        onSaveMapping={handleSaveMapping}
+                        onDeleteMapping={handleDeleteMapping}
+                    />
+                )
             case 'settings':
                 return (
                     <Settings
                         config={config || undefined}
-                        entityMappings={entityMappings}
-                        orgUnitGroups={orgUnitGroups}
-                        loading={groupsLoading}
-                        saving={saving || mappingsSaving}
+                        loading={configLoading}
+                        saving={saving}
                         onSaveConfig={handleSaveConfig}
-                        onSaveMapping={handleSaveMapping}
-                        onDeleteMapping={handleDeleteMapping}
                     />
                 )
             default:
@@ -246,7 +254,7 @@ const MyApp: FC = () => {
 
     return (
         <div className={classes.appContainer}>
-            <Navigation currentPage={currentPage} onNavigate={handleNavigate} />
+            <Navigation currentPage={currentPage} onNavigate={handleNavigate} isConfigured={isConfigured} />
             <main className={classes.mainContent}>{renderPage()}</main>
         </div>
     )

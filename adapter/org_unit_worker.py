@@ -126,11 +126,18 @@ class OrgUnitWorker:
     # DHIS2 Metadata Operations
     # -------------------------------------------------------------------------
 
-    def get_osid_attribute_id(self) -> Optional[str]:
-        """Get the ID of SUNBIRD_OSID attribute."""
+    def get_osid_attribute_id(self, config: Optional[dict] = None) -> Optional[str]:
+        """Get the ID of OSID attribute from config or cache."""
+        # First check if provided in config
+        if config and config.get("osidAttributeId"):
+            self._osid_attribute_id = config.get("osidAttributeId")
+            return self._osid_attribute_id
+
+        # Return cached value if available
         if self._osid_attribute_id:
             return self._osid_attribute_id
 
+        # Fallback: look for SUNBIRD_OSID by code (legacy support)
         url = f"{self.dhis2_url}/attributes?filter=code:eq:SUNBIRD_OSID&fields=id"
         response = requests.get(
             url,
@@ -169,13 +176,13 @@ class OrgUnitWorker:
 
     def is_configured(self, config: dict) -> bool:
         """Check if Sunbird RC is properly configured."""
-        required = ["sunbirdUrl", "keycloakUrl", "clientId", "clientSecret"]
+        required = ["sunbirdUrl", "keycloakUrl", "clientId", "clientSecret", "osidAttributeId"]
         if not all(config.get(key) for key in required):
             return False
 
-        # Check for OSID attribute
-        if not self.get_osid_attribute_id():
-            logger.warning("SUNBIRD_OSID attribute not found")
+        # Check for OSID attribute (use config value)
+        if not self.get_osid_attribute_id(config):
+            logger.warning("OSID attribute not found")
             return False
 
         # Check for at least one entity mapping
@@ -275,13 +282,13 @@ class OrgUnitWorker:
         }
         return self.datastore_upsert(STATS_KEY, all_stats)
 
-    def calculate_stats(self, entity_mapping: dict) -> dict:
+    def calculate_stats(self, entity_mapping: dict, config: Optional[dict] = None) -> dict:
         """Calculate sync stats for an entity mapping."""
         group_ids = entity_mapping.get("orgUnitGroupIds", [])
         if not group_ids:
             return {"total": 0, "synced": 0, "pending": 0}
 
-        osid_attr_id = self.get_osid_attribute_id()
+        osid_attr_id = self.get_osid_attribute_id(config)
         if not osid_attr_id:
             return {"total": 0, "synced": 0, "pending": 0}
 
@@ -348,9 +355,9 @@ class OrgUnitWorker:
             field_mappings=entity_mapping.get("fieldMappings", []),
         )
 
-        osid_attr_id = self.get_osid_attribute_id()
+        osid_attr_id = self.get_osid_attribute_id(sunbird_config)
         if not osid_attr_id:
-            raise ValueError("SUNBIRD_OSID attribute not found")
+            raise ValueError("OSID attribute not configured")
 
         return OrgUnitSyncEngine(
             dhis2_config=dhis2_config,
@@ -362,13 +369,14 @@ class OrgUnitWorker:
     def process_sync_request(self, request: dict, sunbird_config: dict) -> dict:
         """Process a single sync request."""
         request_id = request.get("id", str(uuid.uuid4()))
-        entity_mapping_id = request.get("entityMappingId")
+        # Support both mappingId (frontend) and entityMappingId (legacy)
+        mapping_id = request.get("mappingId") or request.get("entityMappingId")
         org_unit_ids = request.get("orgUnitIds")  # Optional: specific org units
         sync_type = request.get("type", "all")  # "all" or "selected"
 
         logger.info(
             f"Processing sync request {request_id} "
-            f"(entityMapping: {entity_mapping_id}, type: {sync_type})"
+            f"(mapping: {mapping_id}, type: {sync_type})"
         )
 
         # Mark request as processing
@@ -376,9 +384,9 @@ class OrgUnitWorker:
 
         try:
             # Get entity mapping
-            entity_mapping = self.get_entity_mapping_by_id(entity_mapping_id)
+            entity_mapping = self.get_entity_mapping_by_id(mapping_id)
             if not entity_mapping:
-                raise ValueError(f"Entity mapping {entity_mapping_id} not found")
+                raise ValueError(f"Entity mapping {mapping_id} not found")
 
             entity_type = entity_mapping.get("entityType", "Unknown")
 
@@ -389,7 +397,7 @@ class OrgUnitWorker:
             result = engine.run_sync(org_unit_ids=org_unit_ids)
 
             # Update stats
-            stats = self.calculate_stats(entity_mapping)
+            stats = self.calculate_stats(entity_mapping, sunbird_config)
             stats["lastSync"] = datetime.now().isoformat()
             self.update_stats(entity_type, stats)
 
@@ -397,7 +405,7 @@ class OrgUnitWorker:
             history_entry = {
                 "id": str(uuid.uuid4()),
                 "timestamp": datetime.now().isoformat(),
-                "entityMappingId": entity_mapping_id,
+                "mappingId": mapping_id,
                 "entityType": entity_type,
                 "totalCount": result.total,
                 "successCount": result.synced,
@@ -412,7 +420,7 @@ class OrgUnitWorker:
             return {
                 "id": str(uuid.uuid4()),
                 "timestamp": datetime.now().isoformat(),
-                "entityMappingId": entity_mapping_id,
+                "mappingId": mapping_id,
                 "entityType": "Unknown",
                 "totalCount": 0,
                 "successCount": 0,
