@@ -19,7 +19,7 @@ const MyApp: FC = () => {
     const [historyPage, setHistoryPage] = useState(1)
     const [syncQueued, setSyncQueued] = useState(false)
     const [selectedMappingId, setSelectedMappingId] = useState<string>('')
-    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'synced'>('all')
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'synced' | 'error'>('all')
 
     // Hooks for data
     const { config, loading: configLoading, saving, saveConfig, isConfigured, error: configError } = useConfig()
@@ -51,6 +51,12 @@ const MyApp: FC = () => {
         records: facilityRecords,
         loading: facilitiesLoading,
         stats: facilityStats,
+        page: facilityPage,
+        pageSize: facilityPageSize,
+        pageCount: facilityPageCount,
+        filteredTotal: facilityFilteredTotal,
+        setPage: setFacilityPage,
+        setPageSize: setFacilityPageSize,
         refetch: refetchFacilities,
     } = useFacilityOrgUnits(selectedGroupIds, statusFilter)
 
@@ -111,7 +117,7 @@ const MyApp: FC = () => {
         setStatusFilter('all')
     }, [])
 
-    const handleStatusFilterChange = useCallback((status: 'all' | 'pending' | 'synced') => {
+    const handleStatusFilterChange = useCallback((status: 'all' | 'pending' | 'synced' | 'error') => {
         setStatusFilter(status)
     }, [])
 
@@ -207,6 +213,12 @@ const MyApp: FC = () => {
                         orgUnitGroups={orgUnitGroups}
                         selectedMappingId={selectedMappingId}
                         statusFilter={statusFilter}
+                        page={facilityPage}
+                        pageSize={facilityPageSize}
+                        pageCount={facilityPageCount}
+                        filteredTotal={facilityFilteredTotal}
+                        onPageChange={setFacilityPage}
+                        onPageSizeChange={setFacilityPageSize}
                         onMappingChange={handleMappingChange}
                         onStatusFilterChange={handleStatusFilterChange}
                         onSync={handleSync}

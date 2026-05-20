@@ -196,7 +196,8 @@ class OrgUnitSyncEngine:
             f"?filter=organisationUnitGroups.id:in:[{group_filter}]"
             f"&fields=id,name,code,shortName,geometry,openingDate,"
             f"attributeValues[attribute[id,code],value],"
-            f"ancestors[id,name,level]"
+            f"ancestors[id,name,level],"
+            f"organisationUnitGroups[id,code,displayName]"
             f"&paging=false"
         )
 
@@ -226,7 +227,8 @@ class OrgUnitSyncEngine:
             f"?filter=id:in:[{ids_param}]"
             f"&fields=id,name,code,shortName,geometry,openingDate,"
             f"attributeValues[attribute[id,code],value],"
-            f"ancestors[id,name,level]"
+            f"ancestors[id,name,level],"
+            f"organisationUnitGroups[id,code,displayName]"
             f"&paging=false"
         )
 
@@ -266,15 +268,19 @@ class OrgUnitSyncEngine:
             if not source or not target:
                 continue
 
-            value = self._extract_source_value(org_unit, source)
+            value = self._extract_source_value(org_unit, source, mapping)
 
             if value is not None:
                 self._set_nested_value(result, target, value)
 
         return result
 
-    def _extract_source_value(self, org_unit: dict, source: str):
+    def _extract_source_value(self, org_unit: dict, source: str, mapping: dict = None):
         """Extract value from org unit based on source field specification."""
+        # Handle constant values
+        if source == "$constant":
+            return mapping.get("constantValue") if mapping else None
+
         # Handle parent level syntax: parent[level=2].name
         if source.startswith("parent[level="):
             try:
@@ -292,7 +298,20 @@ class OrgUnitSyncEngine:
                 return ancestors[-1].get("name")
             return None
 
-        # Handle geometry.coordinates
+        # Handle geometry.coordinates[0] (longitude) and geometry.coordinates[1] (latitude)
+        if source.startswith("geometry.coordinates["):
+            geometry = org_unit.get("geometry")
+            if geometry and geometry.get("type") == "Point":
+                coords = geometry.get("coordinates", [])
+                try:
+                    index = int(source.split("[")[1].split("]")[0])
+                    if len(coords) > index:
+                        return coords[index]
+                except (IndexError, ValueError):
+                    pass
+            return None
+
+        # Handle geometry.coordinates (full coordinates)
         if source == "geometry.coordinates":
             geometry = org_unit.get("geometry")
             if geometry and geometry.get("type") == "Point":
@@ -310,18 +329,55 @@ class OrgUnitSyncEngine:
                     return attr_value.get("value")
             return None
 
+        # Handle organisationUnitGroup.code and organisationUnitGroup.name
+        if source == "organisationUnitGroup.code":
+            groups = org_unit.get("organisationUnitGroups", [])
+            if groups:
+                return groups[0].get("code")
+            return None
+
+        if source == "organisationUnitGroup.name":
+            groups = org_unit.get("organisationUnitGroups", [])
+            if groups:
+                return groups[0].get("displayName")
+            return None
+
         # Handle direct fields
         return org_unit.get(source)
 
     def _set_nested_value(self, obj: dict, path: str, value):
-        """Set a nested value in a dict using dot notation."""
+        """Set a nested value in a dict using dot notation.
+
+        Supports array syntax like 'externalApis[].platform' which creates:
+        { "externalApis": [{ "platform": value }] }
+        """
         parts = path.split(".")
         current = obj
-        for part in parts[:-1]:
-            if part not in current:
-                current[part] = {}
-            current = current[part]
-        current[parts[-1]] = value
+
+        for i, part in enumerate(parts[:-1]):
+            # Handle array syntax: fieldName[]
+            if part.endswith("[]"):
+                array_name = part[:-2]
+                if array_name not in current:
+                    current[array_name] = [{}]
+                elif not current[array_name]:
+                    current[array_name] = [{}]
+                # Navigate into the first (and only) array element
+                current = current[array_name][0]
+            else:
+                if part not in current:
+                    current[part] = {}
+                current = current[part]
+
+        # Handle final part (also might have array syntax)
+        final_part = parts[-1]
+        if final_part.endswith("[]"):
+            array_name = final_part[:-2]
+            if array_name not in current:
+                current[array_name] = []
+            current[array_name].append(value)
+        else:
+            current[final_part] = value
 
     # -------------------------------------------------------------------------
     # OSID Update
@@ -329,10 +385,8 @@ class OrgUnitSyncEngine:
 
     def update_org_unit_osid(self, org_unit_id: str, osid: str) -> bool:
         """Update org unit with SUNBIRD_OSID attribute value."""
-        # First, get current org unit data
-        response = self.dhis2_get(
-            f"organisationUnits/{org_unit_id}?fields=id,attributeValues"
-        )
+        # First, get full org unit data (DHIS2 PATCH doesn't support nested objects)
+        response = self.dhis2_get(f"organisationUnits/{org_unit_id}")
         if response.status_code != 200:
             logger.error(f"Failed to fetch org unit {org_unit_id}")
             return False
@@ -356,11 +410,12 @@ class OrgUnitSyncEngine:
                 "value": osid,
             })
 
-        # Update org unit
-        update_payload = {"attributeValues": attr_values}
-        response = self.dhis2_patch(
+        org_unit["attributeValues"] = attr_values
+
+        # Use PUT with full org unit (PATCH doesn't support nested attribute objects)
+        response = self.dhis2_put(
             f"organisationUnits/{org_unit_id}",
-            update_payload,
+            org_unit,
         )
 
         if response.status_code in [200, 204]:
@@ -398,8 +453,20 @@ class OrgUnitSyncEngine:
             response = self.sunbird_post(entity_type, sunbird_data)
 
             if response.status_code not in [200, 201]:
-                result["error"] = f"Sunbird RC error: {response.status_code}"
-                logger.error(f"Failed to sync {org_unit_name}: {response.text[:200]}")
+                # Extract detailed error message from Sunbird response
+                try:
+                    error_data = response.json()
+                    error_msg = error_data.get("params", {}).get("errmsg", "")
+                    # Simplify the error message if it contains exception class names
+                    if "UniqueIdentifierException" in error_msg:
+                        # Extract the actual message after the last colon
+                        parts = error_msg.split(":")
+                        error_msg = parts[-1].strip() if parts else error_msg
+                except Exception:
+                    error_msg = response.text[:200]
+
+                result["error"] = error_msg or f"Sunbird RC error: {response.status_code}"
+                logger.error(f"Failed to sync {org_unit_name}: {error_msg}")
                 return result
 
             # Extract OSID from response

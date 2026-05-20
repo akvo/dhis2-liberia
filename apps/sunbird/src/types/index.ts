@@ -12,6 +12,7 @@ export interface FieldMapping {
     source: string
     target: string
     required?: boolean
+    constantValue?: string // For constant/static values
 }
 
 // Entity mapping - maps org unit groups to Sunbird entity type
@@ -36,8 +37,9 @@ export interface FacilityRecord {
     code: string
     location: string // Hierarchy: County > District > Community
     coordinates?: { lon: number; lat: number }
-    syncStatus: 'pending' | 'synced'
+    syncStatus: 'pending' | 'synced' | 'error'
     osid?: string
+    errorMessage?: string // Error message from last sync attempt
 }
 
 // Sync stats
@@ -45,12 +47,15 @@ export interface SyncStats {
     total: number
     synced: number
     pending: number
+    error: number
     lastSync?: string
 }
 
 // Available source fields for field mapping
 // Note: GeoJSON coordinates are [longitude, latitude]
 export const SOURCE_FIELDS = [
+    { value: '$constant', label: '-- Constant Value --' },
+    { value: 'id', label: 'Org Unit ID' },
     { value: 'name', label: 'Name' },
     { value: 'code', label: 'Code' },
     { value: 'shortName', label: 'Short Name' },

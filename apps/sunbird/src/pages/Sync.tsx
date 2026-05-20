@@ -17,6 +17,7 @@ import {
     SingleSelectOption,
     Field,
     SegmentedControl,
+    Pagination,
 } from '@dhis2/ui'
 import React, { FC, useState, useMemo } from 'react'
 import type { EntityMapping, FacilityRecord, SyncStats, OrgUnitGroup } from '@/types'
@@ -31,9 +32,16 @@ interface SyncProps {
     entityMappings: EntityMapping[]
     orgUnitGroups: OrgUnitGroup[]
     selectedMappingId?: string
-    statusFilter: 'all' | 'pending' | 'synced'
+    statusFilter: 'all' | 'pending' | 'synced' | 'error'
+    // Pagination
+    page: number
+    pageSize: number
+    pageCount: number
+    filteredTotal: number
+    onPageChange: (page: number) => void
+    onPageSizeChange: (pageSize: number) => void
     onMappingChange: (mappingId: string) => void
-    onStatusFilterChange: (status: 'all' | 'pending' | 'synced') => void
+    onStatusFilterChange: (status: 'all' | 'pending' | 'synced' | 'error') => void
     onSync: (selectedIds: string[]) => void
     onRefresh: () => void
 }
@@ -48,6 +56,12 @@ const Sync: FC<SyncProps> = ({
     orgUnitGroups = [],
     selectedMappingId,
     statusFilter,
+    page,
+    pageSize,
+    pageCount,
+    filteredTotal,
+    onPageChange,
+    onPageSizeChange,
     onMappingChange,
     onStatusFilterChange,
     onSync,
@@ -98,6 +112,8 @@ const Sync: FC<SyncProps> = ({
         switch (status) {
             case 'synced':
                 return <Tag positive>{i18n.t('Synced')}</Tag>
+            case 'error':
+                return <Tag negative>{i18n.t('Error')}</Tag>
             default:
                 return <Tag neutral>{i18n.t('Pending')}</Tag>
         }
@@ -183,7 +199,7 @@ const Sync: FC<SyncProps> = ({
                             <SegmentedControl
                                 selected={statusFilter}
                                 onChange={({ value }) =>
-                                    onStatusFilterChange(value as 'all' | 'pending' | 'synced')
+                                    onStatusFilterChange(value as 'all' | 'pending' | 'synced' | 'error')
                                 }
                                 options={[
                                     {
@@ -197,6 +213,10 @@ const Sync: FC<SyncProps> = ({
                                     {
                                         value: 'synced',
                                         label: i18n.t('Synced ({{count}})', { count: stats.synced }),
+                                    },
+                                    {
+                                        value: 'error',
+                                        label: i18n.t('Error ({{count}})', { count: stats.error }),
                                     },
                                 ]}
                             />
@@ -273,17 +293,37 @@ const Sync: FC<SyncProps> = ({
                                     </DataTableCell>
                                     <DataTableCell>{record.location || '-'}</DataTableCell>
                                     <DataTableCell>
-                                        {getStatusTag(record.syncStatus)}
-                                        {record.osid && (
-                                            <span className={classes.osidText}>
-                                                OSID: {record.osid.substring(0, 8)}...
-                                            </span>
-                                        )}
+                                        <div className={classes.statusCell}>
+                                            {getStatusTag(record.syncStatus)}
+                                            {record.osid && (
+                                                <span className={classes.osidText}>
+                                                    OSID: {record.osid.substring(0, 8)}...
+                                                </span>
+                                            )}
+                                            {record.errorMessage && (
+                                                <span className={classes.errorText}>
+                                                    {record.errorMessage}
+                                                </span>
+                                            )}
+                                        </div>
                                     </DataTableCell>
                                 </DataTableRow>
                             ))}
                         </DataTableBody>
                     </DataTable>
+                    {pageCount > 1 && (
+                        <div className={classes.paginationContainer}>
+                            <Pagination
+                                page={page}
+                                pageSize={pageSize}
+                                pageCount={pageCount}
+                                total={filteredTotal}
+                                onPageChange={onPageChange}
+                                onPageSizeChange={onPageSizeChange}
+                                pageSizes={['10', '25', '50', '100']}
+                            />
+                        </div>
+                    )}
                 </Card>
             )}
 

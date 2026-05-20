@@ -177,17 +177,26 @@ class OrgUnitWorker:
     def is_configured(self, config: dict) -> bool:
         """Check if Sunbird RC is properly configured."""
         required = ["sunbirdUrl", "keycloakUrl", "clientId", "clientSecret", "osidAttributeId"]
-        if not all(config.get(key) for key in required):
+        missing = [key for key in required if not config.get(key)]
+        if missing:
+            logger.warning(f"Missing required config fields: {missing}")
             return False
 
         # Check for OSID attribute (use config value)
-        if not self.get_osid_attribute_id(config):
-            logger.warning("OSID attribute not found")
+        osid_attr = self.get_osid_attribute_id(config)
+        if not osid_attr:
+            logger.warning("OSID attribute not found in DHIS2")
             return False
+        logger.debug(f"OSID attribute ID: {osid_attr}")
 
         # Check for at least one entity mapping
         mappings = self.get_entity_mappings()
-        return len(mappings) > 0
+        if len(mappings) == 0:
+            logger.warning("No entity mappings configured")
+            return False
+
+        logger.info(f"Configuration valid: {len(mappings)} entity mapping(s)")
+        return True
 
     # -------------------------------------------------------------------------
     # Queue Operations

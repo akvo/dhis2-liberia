@@ -424,22 +424,34 @@ const EntityMappingModal: FC<EntityMappingModalProps> = ({
                             {mapping.fieldMappings.map((fm, index) => (
                                 <DataTableRow key={index}>
                                     <DataTableCell>
-                                        <SingleSelect
-                                            selected={fm.source}
-                                            onChange={({ selected }) =>
-                                                handleFieldMappingChange(index, 'source', selected)
-                                            }
-                                            placeholder={i18n.t('Select source')}
-                                            dense
-                                        >
-                                            {SOURCE_FIELDS.map((f) => (
-                                                <SingleSelectOption
-                                                    key={f.value}
-                                                    value={f.value}
-                                                    label={f.label}
+                                        <div className={classes.sourceFieldCell}>
+                                            <SingleSelect
+                                                selected={fm.source}
+                                                onChange={({ selected }) =>
+                                                    handleFieldMappingChange(index, 'source', selected)
+                                                }
+                                                placeholder={i18n.t('Select source')}
+                                                dense
+                                            >
+                                                {SOURCE_FIELDS.map((f) => (
+                                                    <SingleSelectOption
+                                                        key={f.value}
+                                                        value={f.value}
+                                                        label={f.label}
+                                                    />
+                                                ))}
+                                            </SingleSelect>
+                                            {fm.source === '$constant' && (
+                                                <InputField
+                                                    value={fm.constantValue || ''}
+                                                    onChange={({ value }) =>
+                                                        handleFieldMappingChange(index, 'constantValue', value || '')
+                                                    }
+                                                    placeholder={i18n.t('Enter constant value')}
+                                                    dense
                                                 />
-                                            ))}
-                                        </SingleSelect>
+                                            )}
+                                        </div>
                                     </DataTableCell>
                                     <DataTableCell>
                                         {schemaFields.length > 0 ? (

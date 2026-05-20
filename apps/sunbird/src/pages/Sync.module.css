@@ -66,11 +66,15 @@
     color: var(--colors-grey600);
 }
 
+.statusCell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
 .errorText {
-    display: block;
     font-size: 12px;
     color: var(--colors-red700);
-    margin-top: 4px;
 }
 
 .osidText {
@@ -79,6 +83,11 @@
     color: var(--colors-grey600);
     margin-top: 4px;
     font-family: monospace;
+}
+
+.paginationContainer {
+    padding: 16px;
+    border-top: 1px solid var(--colors-grey300);
 }
 
 .mappingInfo {
