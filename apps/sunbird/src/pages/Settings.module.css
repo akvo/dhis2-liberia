@@ -110,3 +110,25 @@
 .programEditCard h4 {
     margin: 0 0 16px 0;
 }
+
+.fieldContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.fieldLabel {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--colors-grey900);
+}
+
+.required {
+    color: var(--colors-red600);
+}
+
+.helpText {
+    font-size: 12px;
+    color: var(--colors-grey600);
+    margin-top: 4px;
+}

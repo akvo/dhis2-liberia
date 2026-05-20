@@ -1,14 +1,12 @@
 import { useDataQuery, useDataMutation } from '@dhis2/app-runtime'
-import { useCallback, useEffect, useState } from 'react'
-import type { SunbirdConfig } from '@/pages/Settings'
+import { useCallback, useState } from 'react'
+import type { SunbirdConfig } from '@/types'
 
 const CONFIG_KEY = 'config'
 const NAMESPACE = 'sunbird-sync'
 
 interface DataStoreValue {
-    dataStore: {
-        config: SunbirdConfig
-    }
+    dataStore: SunbirdConfig
 }
 
 const configQuery = {
@@ -46,32 +44,13 @@ export const useConfig = (): UseConfigResult => {
         configQuery,
         {
             onComplete: (data) => {
-                const rawConfig = data.dataStore as unknown as SunbirdConfig & {
-                    programId?: string
-                    entityType?: string
-                    mappings?: unknown[]
-                }
-                // Migrate old format to new format
-                if (!rawConfig.programs) {
-                    const { programId, entityType, mappings, ...globalSettings } = rawConfig
-                    const migratedConfig: SunbirdConfig = {
-                        ...globalSettings,
-                        programs: programId ? [{
-                            programId,
-                            entityType: entityType || '',
-                            enabled: true,
-                            mappings: (mappings || []) as SunbirdConfig['programs'][0]['mappings'],
-                        }] : [],
-                    }
-                    setConfig(migratedConfig)
-                } else {
-                    setConfig(rawConfig)
-                }
+                const rawConfig = data.dataStore as SunbirdConfig
+                setConfig(rawConfig)
                 setExists(true)
             },
             onError: (err) => {
                 // 404 means config doesn't exist yet - not an error
-                if (err.details?.httpStatusCode === 404) {
+                if ((err as any).details?.httpStatusCode === 404) {
                     setExists(false)
                     setConfig(null)
                 }
@@ -110,14 +89,12 @@ export const useConfig = (): UseConfigResult => {
         [exists, createMutation, updateMutation]
     )
 
+    // Connection is configured if all required fields are set
     const isConfigured = Boolean(
         config?.sunbirdUrl &&
-            config?.keycloakUrl &&
-            config?.clientId &&
-            config?.clientSecret &&
-            config?.programs &&
-            config.programs.length > 0 &&
-            config.programs.some(p => p.enabled && p.programId && p.entityType)
+        config?.keycloakUrl &&
+        config?.clientId &&
+        config?.clientSecret
     )
 
     // Treat 404 as not configured, not an error

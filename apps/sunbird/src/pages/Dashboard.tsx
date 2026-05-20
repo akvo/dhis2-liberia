@@ -1,53 +1,54 @@
 import i18n from '@dhis2/d2-i18n'
 import {
     Card,
-    IconSync24,
     IconCheckmarkCircle24,
-    IconError24,
     IconClock24,
+    IconWorld24,
     CircularLoader,
     SingleSelect,
     SingleSelectOption,
     Field,
     Tag,
+    NoticeBox,
 } from '@dhis2/ui'
 import React, { FC } from 'react'
-import type { ProgramConfig } from './Settings'
+import type { EntityMapping, SyncStats, OrgUnitGroup } from '@/types'
 import classes from './Dashboard.module.css'
 
-interface SyncStats {
-    totalSynced: number
-    lastSyncTime: string | null
-    pendingCount: number
-    errorCount: number
+interface DashboardStats extends SyncStats {
+    lastSyncTime?: string | null
 }
 
 interface DashboardProps {
-    stats?: SyncStats
+    stats: DashboardStats
     loading?: boolean
     isConfigured?: boolean
-    programs?: ProgramConfig[]
-    dhis2Programs?: Array<{ id: string; displayName: string }>
-    selectedProgramId?: string
-    onProgramChange?: (programId: string) => void
+    entityMappings: EntityMapping[]
+    orgUnitGroups: OrgUnitGroup[]
+    selectedMappingId?: string
+    onMappingChange?: (mappingId: string) => void
 }
 
 const Dashboard: FC<DashboardProps> = ({
     stats,
     loading = false,
     isConfigured = false,
-    programs = [],
-    dhis2Programs = [],
-    selectedProgramId,
-    onProgramChange,
+    entityMappings = [],
+    orgUnitGroups = [],
+    selectedMappingId,
+    onMappingChange,
 }) => {
-    const getProgramDisplayName = (programId: string): string => {
-        const dhis2Program = dhis2Programs.find(p => p.id === programId)
-        return dhis2Program?.displayName || programId
+    const getMappingLabel = (mapping: EntityMapping): string => {
+        const groupNames = mapping.orgUnitGroupIds
+            .map((gid) => {
+                const group = orgUnitGroups.find((g) => g.id === gid)
+                return group?.displayName || gid
+            })
+            .join(', ')
+        return `${mapping.entityType} (${groupNames})`
     }
 
-    const selectedProgram = programs.find(p => p.programId === selectedProgramId)
-    const enabledPrograms = programs.filter(p => p.enabled)
+    const selectedMapping = entityMappings.find((m) => m.id === selectedMappingId)
 
     if (loading) {
         return (
@@ -74,30 +75,46 @@ const Dashboard: FC<DashboardProps> = ({
         )
     }
 
+    if (entityMappings.length === 0) {
+        return (
+            <div className={classes.container}>
+                <NoticeBox warning title={i18n.t('No Entity Mappings')}>
+                    {i18n.t(
+                        'Please create at least one Entity Mapping in Settings to start syncing facilities.'
+                    )}
+                </NoticeBox>
+            </div>
+        )
+    }
+
+    const syncPercentage = stats.total > 0
+        ? Math.round((stats.synced / stats.total) * 100)
+        : 0
+
     return (
         <div className={classes.container}>
             <div className={classes.headerRow}>
-                <h2>{i18n.t('Sync Overview')}</h2>
-                {selectedProgram && (
+                <h2>{i18n.t('Facility Sync Overview')}</h2>
+                {selectedMapping && (
                     <Tag neutral>
-                        {getProgramDisplayName(selectedProgram.programId)} → {selectedProgram.entityType}
+                        {selectedMapping.entityType}
                     </Tag>
                 )}
             </div>
 
-            {enabledPrograms.length > 1 && onProgramChange && (
-                <div className={classes.programSelector}>
-                    <Field label={i18n.t('Select Program')}>
+            {entityMappings.length > 1 && onMappingChange && (
+                <div className={classes.mappingSelector}>
+                    <Field label={i18n.t('Entity Mapping')}>
                         <SingleSelect
-                            selected={selectedProgramId}
-                            onChange={({ selected }) => onProgramChange(selected || '')}
-                            placeholder={i18n.t('Choose a program')}
+                            selected={selectedMappingId}
+                            onChange={({ selected }) => onMappingChange(selected || '')}
+                            placeholder={i18n.t('Select a mapping')}
                         >
-                            {enabledPrograms.map((prog) => (
+                            {entityMappings.map((mapping) => (
                                 <SingleSelectOption
-                                    key={prog.programId}
-                                    label={`${getProgramDisplayName(prog.programId)} → ${prog.entityType}`}
-                                    value={prog.programId}
+                                    key={mapping.id}
+                                    label={getMappingLabel(mapping)}
+                                    value={mapping.id}
                                 />
                             ))}
                         </SingleSelect>
@@ -109,11 +126,11 @@ const Dashboard: FC<DashboardProps> = ({
                 <Card className={classes.statCard}>
                     <div className={classes.cardContent}>
                         <div className={classes.statHeader}>
-                            <IconCheckmarkCircle24 />
-                            <span>{i18n.t('Total Synced')}</span>
+                            <IconWorld24 />
+                            <span>{i18n.t('Total Facilities')}</span>
                         </div>
                         <div className={classes.statValue}>
-                            {stats?.totalSynced ?? 0}
+                            {stats.total}
                         </div>
                     </div>
                 </Card>
@@ -121,24 +138,32 @@ const Dashboard: FC<DashboardProps> = ({
                 <Card className={classes.statCard}>
                     <div className={classes.cardContent}>
                         <div className={classes.statHeader}>
-                            <IconSync24 />
+                            <IconCheckmarkCircle24 />
+                            <span>{i18n.t('Synced')}</span>
+                        </div>
+                        <div className={classes.statValue}>
+                            {stats.synced}
+                        </div>
+                        <div className={classes.statSubtext}>
+                            {syncPercentage}% {i18n.t('complete')}
+                        </div>
+                    </div>
+                </Card>
+
+                <Card className={`${classes.statCard} ${stats.pending > 0 ? classes.pendingCard : ''}`}>
+                    <div className={classes.cardContent}>
+                        <div className={classes.statHeader}>
+                            <IconClock24 />
                             <span>{i18n.t('Pending')}</span>
                         </div>
                         <div className={classes.statValue}>
-                            {stats?.pendingCount ?? 0}
+                            {stats.pending}
                         </div>
-                    </div>
-                </Card>
-
-                <Card className={classes.statCard}>
-                    <div className={classes.cardContent}>
-                        <div className={classes.statHeader}>
-                            <IconError24 />
-                            <span>{i18n.t('Errors')}</span>
-                        </div>
-                        <div className={classes.statValue}>
-                            {stats?.errorCount ?? 0}
-                        </div>
+                        {stats.pending > 0 && (
+                            <div className={classes.statSubtext}>
+                                {i18n.t('Ready to sync')}
+                            </div>
+                        )}
                     </div>
                 </Card>
 
@@ -149,11 +174,31 @@ const Dashboard: FC<DashboardProps> = ({
                             <span>{i18n.t('Last Sync')}</span>
                         </div>
                         <div className={classes.statTime}>
-                            {stats?.lastSyncTime ?? i18n.t('Never')}
+                            {stats.lastSyncTime ?? i18n.t('Never')}
                         </div>
                     </div>
                 </Card>
             </div>
+
+            {stats.total > 0 && (
+                <div className={classes.progressSection}>
+                    <div className={classes.progressLabel}>
+                        {i18n.t('Sync Progress')}
+                    </div>
+                    <div className={classes.progressBar}>
+                        <div
+                            className={classes.progressFill}
+                            style={{ width: `${syncPercentage}%` }}
+                        />
+                    </div>
+                    <div className={classes.progressText}>
+                        {i18n.t('{{synced}} of {{total}} facilities synced to Sunbird RC', {
+                            synced: stats.synced,
+                            total: stats.total,
+                        })}
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

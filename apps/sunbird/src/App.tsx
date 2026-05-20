@@ -1,47 +1,83 @@
 import i18n from '@dhis2/d2-i18n'
-import { CircularLoader, NoticeBox, AlertBar } from '@dhis2/ui'
-import React, { FC, useState, useCallback, useEffect } from 'react'
+import { CircularLoader, NoticeBox } from '@dhis2/ui'
+import React, { FC, useState, useCallback, useEffect, useMemo } from 'react'
 import classes from '@/App.module.css'
 import { Navigation, PageKey } from '@/components'
-import { useConfig, useSyncHistory, usePrograms, usePendingTeis, useSyncQueue } from '@/hooks'
-import { Dashboard, Settings, Sync, History, SunbirdConfig } from '@/pages'
+import {
+    useConfig,
+    useSyncHistory,
+    useOrgUnitGroups,
+    useEntityMappings,
+    useFacilityOrgUnits,
+    useSyncQueue,
+} from '@/hooks'
+import { Dashboard, Settings, Sync, History, Mappings } from '@/pages'
+import type { SunbirdConfig, EntityMapping } from '@/types'
 
 const MyApp: FC = () => {
     const [currentPage, setCurrentPage] = useState<PageKey>('dashboard')
     const [historyPage, setHistoryPage] = useState(1)
     const [syncQueued, setSyncQueued] = useState(false)
-    const [selectedProgramId, setSelectedProgramId] = useState<string>('')
+    const [selectedMappingId, setSelectedMappingId] = useState<string>('')
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'synced' | 'error'>('all')
 
     // Hooks for data
     const { config, loading: configLoading, saving, saveConfig, isConfigured, error: configError } = useConfig()
     const { logs, loading: historyLoading, refetchHistory, clearHistory } = useSyncHistory()
-    const { programs, loading: programsLoading } = usePrograms()
-    const { records: syncRecords, loading: teisLoading, refetch: refetchTeis, stats: teiStats } = usePendingTeis(selectedProgramId || undefined)
+    const { groups: orgUnitGroups, loading: groupsLoading } = useOrgUnitGroups()
+    const {
+        mappings: entityMappings,
+        loading: mappingsLoading,
+        saving: mappingsSaving,
+        addMapping,
+        updateMapping,
+        deleteMapping,
+    } = useEntityMappings()
     const { queueSyncRequest } = useSyncQueue()
 
     const [syncing, setSyncing] = useState(false)
 
-    // Auto-select first enabled program when config loads
-    useEffect(() => {
-        if (config?.programs && config.programs.length > 0 && !selectedProgramId) {
-            const firstEnabled = config.programs.find(p => p.enabled)
-            if (firstEnabled) {
-                setSelectedProgramId(firstEnabled.programId)
-            }
-        }
-    }, [config?.programs, selectedProgramId])
+    // Get org unit group IDs for selected mapping
+    const selectedMapping = useMemo(() => {
+        return entityMappings.find((m) => m.id === selectedMappingId)
+    }, [entityMappings, selectedMappingId])
 
-    // Auto-refresh history after sync is queued
+    const selectedGroupIds = useMemo(() => {
+        return selectedMapping?.orgUnitGroupIds || []
+    }, [selectedMapping])
+
+    // Fetch facilities for selected mapping
+    const {
+        records: facilityRecords,
+        loading: facilitiesLoading,
+        stats: facilityStats,
+        page: facilityPage,
+        pageSize: facilityPageSize,
+        pageCount: facilityPageCount,
+        filteredTotal: facilityFilteredTotal,
+        setPage: setFacilityPage,
+        setPageSize: setFacilityPageSize,
+        refetch: refetchFacilities,
+    } = useFacilityOrgUnits(selectedGroupIds, statusFilter)
+
+    // Auto-select first mapping when mappings load
+    useEffect(() => {
+        if (entityMappings.length > 0 && !selectedMappingId) {
+            setSelectedMappingId(entityMappings[0].id)
+        }
+    }, [entityMappings, selectedMappingId])
+
+    // Auto-refresh after sync is queued
     useEffect(() => {
         if (syncQueued) {
             const timer = setTimeout(() => {
                 refetchHistory()
-                refetchTeis()
+                refetchFacilities()
                 setSyncQueued(false)
-            }, 3000) // Wait 3 seconds for worker to process
+            }, 3000)
             return () => clearTimeout(timer)
         }
-    }, [syncQueued, refetchHistory, refetchTeis])
+    }, [syncQueued, refetchHistory, refetchFacilities])
 
     const handleNavigate = useCallback((page: PageKey) => {
         setCurrentPage(page)
@@ -54,17 +90,48 @@ const MyApp: FC = () => {
         [saveConfig]
     )
 
+    const handleSaveMapping = useCallback(
+        async (mapping: EntityMapping) => {
+            const existing = entityMappings.find((m) => m.id === mapping.id)
+            if (existing) {
+                await updateMapping(mapping)
+            } else {
+                await addMapping(mapping)
+            }
+        },
+        [entityMappings, addMapping, updateMapping]
+    )
+
+    const handleDeleteMapping = useCallback(
+        async (id: string) => {
+            await deleteMapping(id)
+            if (selectedMappingId === id) {
+                setSelectedMappingId('')
+            }
+        },
+        [deleteMapping, selectedMappingId]
+    )
+
+    const handleMappingChange = useCallback((mappingId: string) => {
+        setSelectedMappingId(mappingId)
+        setStatusFilter('all')
+    }, [])
+
+    const handleStatusFilterChange = useCallback((status: 'all' | 'pending' | 'synced' | 'error') => {
+        setStatusFilter(status)
+    }, [])
+
     const handleSync = useCallback(
         async (selectedIds: string[]) => {
-            if (!selectedProgramId) {
-                console.error('No program selected')
+            if (!selectedMappingId || !selectedMapping) {
+                console.error('No mapping selected')
                 return
             }
             setSyncing(true)
             try {
                 // Queue sync request for the worker to process
                 const requestId = await queueSyncRequest(
-                    selectedProgramId,
+                    selectedMappingId,
                     selectedIds.length > 0 ? selectedIds : undefined
                 )
                 console.log(`Sync request queued: ${requestId}`)
@@ -75,16 +142,12 @@ const MyApp: FC = () => {
                 setSyncing(false)
             }
         },
-        [queueSyncRequest, selectedProgramId]
+        [queueSyncRequest, selectedMappingId, selectedMapping]
     )
 
     const handleRefresh = useCallback(() => {
-        refetchTeis()
-    }, [refetchTeis])
-
-    const handleProgramChange = useCallback((programId: string) => {
-        setSelectedProgramId(programId)
-    }, [])
+        refetchFacilities()
+    }, [refetchFacilities])
 
     const handleClearHistory = useCallback(async () => {
         await clearHistory()
@@ -95,11 +158,11 @@ const MyApp: FC = () => {
     }, [])
 
     // Calculate dashboard stats
-    const stats = {
-        totalSynced: teiStats.synced,
+    const dashboardStats = {
+        total: facilityStats.total,
+        synced: facilityStats.synced,
+        pending: facilityStats.pending,
         lastSyncTime: logs.length > 0 ? new Date(logs[0].timestamp).toLocaleString() : null,
-        pendingCount: teiStats.pending,
-        errorCount: teiStats.failed,
     }
 
     if (configError) {
@@ -114,7 +177,7 @@ const MyApp: FC = () => {
         )
     }
 
-    const isLoading = configLoading || historyLoading
+    const isLoading = configLoading || historyLoading || groupsLoading || mappingsLoading
 
     if (isLoading) {
         return (
@@ -129,26 +192,35 @@ const MyApp: FC = () => {
             case 'dashboard':
                 return (
                     <Dashboard
-                        stats={stats}
-                        loading={teisLoading}
+                        stats={dashboardStats}
+                        loading={facilitiesLoading}
                         isConfigured={isConfigured}
-                        programs={config?.programs || []}
-                        dhis2Programs={programs}
-                        selectedProgramId={selectedProgramId}
-                        onProgramChange={handleProgramChange}
+                        entityMappings={entityMappings}
+                        orgUnitGroups={orgUnitGroups}
+                        selectedMappingId={selectedMappingId}
+                        onMappingChange={handleMappingChange}
                     />
                 )
             case 'sync':
                 return (
                     <Sync
-                        records={syncRecords}
-                        loading={teisLoading}
+                        records={facilityRecords}
+                        stats={facilityStats}
+                        loading={facilitiesLoading}
                         syncing={syncing}
                         isConfigured={isConfigured}
-                        programs={config?.programs || []}
-                        dhis2Programs={programs}
-                        selectedProgramId={selectedProgramId}
-                        onProgramChange={handleProgramChange}
+                        entityMappings={entityMappings}
+                        orgUnitGroups={orgUnitGroups}
+                        selectedMappingId={selectedMappingId}
+                        statusFilter={statusFilter}
+                        page={facilityPage}
+                        pageSize={facilityPageSize}
+                        pageCount={facilityPageCount}
+                        filteredTotal={facilityFilteredTotal}
+                        onPageChange={setFacilityPage}
+                        onPageSizeChange={setFacilityPageSize}
+                        onMappingChange={handleMappingChange}
+                        onStatusFilterChange={handleStatusFilterChange}
                         onSync={handleSync}
                         onRefresh={handleRefresh}
                     />
@@ -166,14 +238,25 @@ const MyApp: FC = () => {
                         onRefresh={refetchHistory}
                     />
                 )
+            case 'mappings':
+                return (
+                    <Mappings
+                        entityMappings={entityMappings}
+                        orgUnitGroups={orgUnitGroups}
+                        sunbirdUrl={config?.sunbirdUrl}
+                        loading={groupsLoading}
+                        saving={mappingsSaving}
+                        onSaveMapping={handleSaveMapping}
+                        onDeleteMapping={handleDeleteMapping}
+                    />
+                )
             case 'settings':
                 return (
                     <Settings
                         config={config || undefined}
-                        loading={programsLoading}
+                        loading={configLoading}
                         saving={saving}
-                        onSave={handleSaveConfig}
-                        programs={programs}
+                        onSaveConfig={handleSaveConfig}
                     />
                 )
             default:
@@ -183,7 +266,7 @@ const MyApp: FC = () => {
 
     return (
         <div className={classes.appContainer}>
-            <Navigation currentPage={currentPage} onNavigate={handleNavigate} />
+            <Navigation currentPage={currentPage} onNavigate={handleNavigate} isConfigured={isConfigured} />
             <main className={classes.mainContent}>{renderPage()}</main>
         </div>
     )

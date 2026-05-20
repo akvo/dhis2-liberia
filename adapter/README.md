@@ -1,36 +1,38 @@
 # DHIS2 Sunbird RC Sync Adapter
 
-Background worker service that syncs Tracked Entity Instances (TEIs) from DHIS2 to Sunbird RC.
+Background worker service that syncs Organisation Units (facilities) from DHIS2 to Sunbird RC.
 
 ## Architecture
 
 ```
-┌─────────────────┐      ┌──────────────────┐      ┌─────────────┐
-│  DHIS2 App      │      │  DataStore       │      │  Worker     │
-│                 │      │                  │      │             │
-│  Click "Sync"   │──────│ sunbird-sync/    │◄─────│  worker.py  │
-│                 │write │   queue          │poll  │             │
-│                 │      │   config         │      │      │      │
-│  View results   │◄─────│   history        │──────│      ▼      │
-│                 │read  │                  │write │ Sunbird RC  │
-└─────────────────┘      └──────────────────┘      └─────────────┘
+┌─────────────────┐      ┌──────────────────┐      ┌─────────────────────┐
+│  DHIS2 App      │      │  DataStore       │      │  Worker             │
+│                 │      │                  │      │                     │
+│  Click "Sync"   │──────│ sunbird-sync/    │◄─────│ org_unit_worker.py  │
+│                 │write │   queue          │poll  │                     │
+│                 │      │   config         │      │        │            │
+│  View results   │◄─────│   history        │──────│        ▼            │
+│                 │read  │   entity-mappings│write │   Sunbird RC        │
+└─────────────────┘      └──────────────────┘      └─────────────────────┘
 ```
 
 ## Structure
 
 ```
 adapter/
-├── cli/                        # CLI tools for manual operations
-│   ├── create_new_facility.py  # Create test TEIs
-│   ├── setup_facility.py       # Setup DHIS2 metadata
-│   └── sync_facility.py        # Manual sync CLI
-├── worker.py                   # Polling service (main entry point)
-├── sync.py                     # Core sync logic
-├── setup_config.json           # Field mappings & attribute config
-├── requirements.txt            # Python dependencies
-├── run.sh                      # Docker entry script
-├── Dockerfile                  # Container definition
-└── README.md                   # This file
+├── cli/                            # CLI tools
+│   ├── create_facility.py          # Create single facility
+│   ├── create_random_facilities.py # Generate test data
+│   ├── import_facilities.py        # Bulk import from CSV
+│   ├── setup_admin_hierarchy.py    # Setup org unit hierarchy
+│   └── setup_metadata.py           # Setup DHIS2 metadata
+├── org_unit_worker.py              # Polling service (main entry point)
+├── org_unit_sync.py                # Core sync logic
+├── setup_config.json               # Metadata setup config
+├── requirements.txt                # Python dependencies
+├── run.sh                          # Docker entry script
+├── Dockerfile                      # Container definition
+└── README.md                       # This file
 ```
 
 ## Configuration
@@ -46,23 +48,38 @@ adapter/
 
 ### DataStore Configuration
 
-The worker reads Sunbird RC credentials from DHIS2 DataStore:
+The worker reads configuration from DHIS2 DataStore:
 
 **Namespace:** `sunbird-sync`
-**Key:** `config`
 
+**Key: `config`** - Sunbird RC connection settings
 ```json
 {
   "sunbirdUrl": "http://sunbird-rc:8081/api/v1",
   "keycloakUrl": "http://keycloak:8080/auth/realms/sunbird-rc/protocol/openid-connect/token",
   "clientId": "demo-api",
   "clientSecret": "your-secret",
-  "entityType": "WaterFacility",
-  "programId": "bNDnlEUnzBL"
+  "osidAttributeId": "abc123xyz"
 }
 ```
 
-Configure these settings in the DHIS2 Sunbird App → Settings page.
+**Key: `entity-mappings`** - Maps org unit groups to Sunbird entity types
+```json
+[
+  {
+    "id": "em-123",
+    "entityType": "WaterFacility",
+    "orgUnitGroupIds": ["ST3I7msiaGu", "NJylpVluVYv"],
+    "fieldMappings": [
+      {"source": "name", "target": "facilityName"},
+      {"source": "geometry.coordinates[1]", "target": "location.coordinates.lat"},
+      {"source": "geometry.coordinates[0]", "target": "location.coordinates.lon"}
+    ]
+  }
+]
+```
+
+Configure these in the DHIS2 Sunbird App → Settings and Mappings pages.
 
 ## Deployment
 
@@ -95,7 +112,7 @@ docker-compose up -d sunbird-worker
 ```bash
 cd adapter
 pip install -r requirements.txt
-python worker.py --interval 10
+python org_unit_worker.py --interval 10
 ```
 
 ### Option 3: Systemd Service
@@ -114,7 +131,7 @@ WorkingDirectory=/opt/dhis2-liberia/adapter
 Environment=DHIS2_URL=http://localhost:9090
 Environment=DHIS2_USERNAME=admin
 Environment=DHIS2_PASSWORD=district
-ExecStart=/usr/bin/python3 worker.py --interval 10
+ExecStart=/usr/bin/python3 org_unit_worker.py --interval 10
 Restart=always
 RestartSec=10
 
@@ -132,33 +149,50 @@ sudo systemctl start sunbird-worker
 
 ## CLI Tools
 
-### Manual Sync
+### Create Single Facility
 
 ```bash
-cd adapter
-python cli/sync_facility.py
+python -m adapter.cli.create_facility \
+  --name "Borehole ABC" \
+  --parent-code LR_MON_GM_CT \
+  --group BOREHOLE \
+  --coordinates "[-10.79, 6.31]"
 ```
 
-### Test Connections
+### Create Random Test Facilities
 
 ```bash
-# Test DHIS2
-python cli/sync_facility.py --test-dhis2
+# Create 50 random facilities
+python -m adapter.cli.create_random_facilities --count 50
 
-# Test Sunbird RC
-python cli/sync_facility.py --test-sunbird
+# Create 100 boreholes only
+python -m adapter.cli.create_random_facilities --count 100 --group BOREHOLE
 ```
 
-### Create Test Data
+### Bulk Import from CSV
 
 ```bash
-python cli/create_new_facility.py --count 5
+# Validate first
+python -m adapter.cli.import_facilities --csv facilities.csv --dry-run
+
+# Import
+python -m adapter.cli.import_facilities --csv facilities.csv
+```
+
+CSV format:
+```csv
+name,short_name,code,parent_code,group,longitude,latitude,opening_date
+Borehole ABC,BH ABC,BH_001,LR_MON_GM_CT,BOREHOLE,-10.79,6.31,2024-01-15
 ```
 
 ### Setup DHIS2 Metadata
 
 ```bash
-python cli/setup_facility.py
+# Setup org unit groups and attributes
+python -m adapter.cli.setup_metadata
+
+# Setup admin hierarchy from CSV
+python -m adapter.cli.setup_admin_hierarchy --csv org_units.csv
 ```
 
 ## How It Works
@@ -166,11 +200,11 @@ python cli/setup_facility.py
 1. **User clicks Sync** in DHIS2 Sunbird App
 2. App writes request to `DataStore/sunbird-sync/queue`
 3. **Worker polls** queue every N seconds
-4. Worker reads **Sunbird config** from `DataStore/sunbird-sync/config`
-5. Worker fetches **pending TEIs** from DHIS2
-6. Worker **transforms** TEI data to Sunbird RC format
+4. Worker reads **config** and **entity mappings** from DataStore
+5. Worker fetches **org units** without OSID from mapped groups
+6. Worker **transforms** org unit data using field mappings
 7. Worker **POSTs** to Sunbird RC API (with OAuth2 token)
-8. Worker **updates TEI** in DHIS2 with `osid`, `wfId`, `syncStatus=SYNCED`
+8. Worker **updates org unit** in DHIS2 with OSID attribute
 9. Worker writes **result** to `DataStore/sunbird-sync/history`
 10. App displays result in History page
 
@@ -179,8 +213,8 @@ python cli/setup_facility.py
 ### Worker not processing requests
 
 1. Check worker logs: `docker-compose logs -f sunbird-worker`
-2. Verify DHIS2 connection: `python cli/sync_facility.py --test-dhis2`
-3. Check DataStore config has correct URLs
+2. Verify config: Check DataStore `sunbird-sync/config` has all required fields
+3. Check entity mappings exist in `sunbird-sync/entity-mappings`
 
 ### Sunbird RC 401 Unauthorized
 
@@ -188,17 +222,28 @@ Token issuer mismatch. Ensure:
 - `keycloakUrl` uses hostname that Sunbird RC expects (e.g., `keycloak:8080` not `localhost:8080`)
 - If running outside Docker, add `keycloak` to `/etc/hosts`
 
-### Sunbird RC 404 Not Found
+### Sunbird RC 400 Bad Request
 
-- Check `sunbirdUrl` has no trailing spaces
-- Verify `entityType` matches Sunbird RC schema (e.g., `WaterFacility`)
+- Check field mappings match Sunbird RC schema
+- Verify required fields are mapped
+- Use the Mappings page to fetch schema and see required fields
+
+### Sunbird RC 500 Duplicate Error
+
+- Facility with same coordinates/type/location already exists in Sunbird
+- Check if facility was previously synced but OSID not saved to DHIS2
+
+### DHIS2 OSID Update Fails
+
+- Verify `osidAttributeId` in config matches actual attribute ID
+- Check attribute has `organisationUnitAttribute: true`
 
 ## Development
 
 ```bash
 # Run worker with verbose logging
-python worker.py --interval 5
+python org_unit_worker.py --interval 5
 
 # Run single sync cycle (for cron)
-python worker.py --once
+python org_unit_worker.py --once
 ```

@@ -1,246 +1,61 @@
 {
-  "option_sets": [
-    {
-      "name": "Water Point Type",
-      "code": "WATER_POINT_TYPE",
-      "options": [
-        {"name": "Protected dug well", "code": "PDW"},
-        {"name": "Unprotected dug well", "code": "UDW"},
-        {"name": "Tube well or borehole", "code": "TWB"},
-        {"name": "Protected spring", "code": "PS"},
-        {"name": "Unprotected spring", "code": "US"},
-        {"name": "Piped water into dwelling/plot/yard", "code": "PWD"},
-        {"name": "Public tap/standpipe", "code": "PTS"},
-        {"name": "Unequipped borehole", "code": "UEB"},
-        {"name": "Rainwater (harvesting)", "code": "RWH"},
-        {"name": "Sand/Sub-surface dam (with well or standpipe)", "code": "SSD"},
-        {"name": "Other", "code": "OTH"}
-      ]
-    },
-    {
-      "name": "Extraction Type",
-      "code": "EXTRACTION_TYPE",
-      "options": [
-        {"name": "Manual", "code": "MANUAL"},
-        {"name": "Electrical", "code": "ELECTRICAL"},
-        {"name": "Solar", "code": "SOLAR"},
-        {"name": "Other", "code": "OTHER"}
-      ]
-    },
-    {
-      "name": "Pump Type",
-      "code": "PUMP_TYPE",
-      "options": [
-        {"name": "Afridev", "code": "AFRIDEV"},
-        {"name": "Consallen", "code": "CONSALLEN"},
-        {"name": "India Mark", "code": "INDIA_MARK"},
-        {"name": "Kardia", "code": "KARDIA"},
-        {"name": "Rope pump", "code": "ROPE_PUMP"},
-        {"name": "Vergnet", "code": "VERGNET"},
-        {"name": "Other", "code": "OTHER"}
-      ]
-    },
-    {
-      "name": "Installer Type",
-      "code": "INSTALLER_TYPE",
-      "options": [
-        {"name": "Government", "code": "GOVERNMENT"},
-        {"name": "NGO", "code": "NGO"},
-        {"name": "Private", "code": "PRIVATE"},
-        {"name": "Other", "code": "OTHER"}
-      ]
-    },
-    {
-      "name": "Owner Type",
-      "code": "OWNER_TYPE",
-      "options": [
-        {"name": "Community", "code": "COMMUNITY"},
-        {"name": "Private Individual", "code": "PRIVATE_INDIVIDUAL"},
-        {"name": "School", "code": "SCHOOL"},
-        {"name": "NGO", "code": "NGO"},
-        {"name": "Health Facility", "code": "HEALTH_FACILITY"},
-        {"name": "Other institution", "code": "OTHER_INSTITUTION"},
-        {"name": "CBO", "code": "CBO"},
-        {"name": "Private", "code": "PRIVATE"},
-        {"name": "Unknown", "code": "UNKNOWN"},
-        {"name": "Other", "code": "OTHER"}
-      ]
-    },
-    {
-      "name": "Sync Status",
-      "code": "SYNC_STATUS",
-      "options": [
-        {"name": "Pending", "code": "PENDING"},
-        {"name": "Synced", "code": "SYNCED"},
-        {"name": "Failed", "code": "FAILED"}
-      ]
-    }
-  ],
-  "attributes": [
-    {
-      "name": "Sunbird OSID",
-      "shortName": "osid",
-      "code": "SUNBIRD_OSID",
-      "valueType": "TEXT",
-      "aggregationType": "NONE",
-      "unique": true,
-      "searchable": true
-    },
-    {
-      "name": "Water Facility ID",
-      "shortName": "wfId",
-      "code": "WF_ID",
-      "valueType": "TEXT",
-      "aggregationType": "NONE",
-      "unique": true,
-      "searchable": true
-    },
-    {
-      "name": "Sync Status",
-      "shortName": "syncStatus",
-      "code": "SYNC_STATUS_ATTR",
-      "valueType": "TEXT",
-      "aggregationType": "NONE",
-      "optionSetCode": "SYNC_STATUS"
-    },
-    {
-      "name": "Geo Code",
-      "shortName": "geoCode",
-      "code": "GEO_CODE",
-      "valueType": "TEXT",
-      "aggregationType": "NONE",
-      "unique": true,
-      "searchable": true
-    },
-    {
-      "name": "County",
-      "shortName": "county",
-      "code": "COUNTY",
-      "valueType": "ORGANISATION_UNIT",
-      "aggregationType": "NONE",
-      "searchable": true
-    },
-    {
-      "name": "District",
-      "shortName": "district",
-      "code": "DISTRICT",
-      "valueType": "ORGANISATION_UNIT",
-      "aggregationType": "NONE",
-      "searchable": true
-    },
-    {
-      "name": "Community",
-      "shortName": "community",
-      "code": "COMMUNITY",
-      "valueType": "ORGANISATION_UNIT",
-      "aggregationType": "NONE"
-    },
-    {
-      "name": "Water Point Type",
-      "shortName": "waterPointType",
-      "code": "WATER_POINT_TYPE_ATTR",
-      "valueType": "TEXT",
-      "aggregationType": "NONE",
-      "optionSetCode": "WATER_POINT_TYPE"
-    },
-    {
-      "name": "Extraction Type",
-      "shortName": "extractionType",
-      "code": "EXTRACTION_TYPE_ATTR",
-      "valueType": "TEXT",
-      "aggregationType": "NONE",
-      "optionSetCode": "EXTRACTION_TYPE"
-    },
-    {
-      "name": "Pump Type",
-      "shortName": "pumpType",
-      "code": "PUMP_TYPE_ATTR",
-      "valueType": "TEXT",
-      "aggregationType": "NONE",
-      "optionSetCode": "PUMP_TYPE"
-    },
-    {
-      "name": "Number of Taps",
-      "shortName": "numTaps",
-      "code": "NUM_TAPS",
-      "valueType": "INTEGER",
-      "aggregationType": "SUM"
-    },
-    {
-      "name": "Has Depth Info",
-      "shortName": "hasDepthInfo",
-      "code": "HAS_DEPTH_INFO",
-      "valueType": "BOOLEAN",
-      "aggregationType": "NONE"
-    },
-    {
-      "name": "Depth (metres)",
-      "shortName": "depthMetres",
-      "code": "DEPTH_METRES",
-      "valueType": "NUMBER",
-      "aggregationType": "AVERAGE"
-    },
-    {
-      "name": "Installer",
-      "shortName": "installer",
-      "code": "INSTALLER",
-      "valueType": "TEXT",
-      "aggregationType": "NONE",
-      "optionSetCode": "INSTALLER_TYPE"
-    },
-    {
-      "name": "Owner",
-      "shortName": "owner",
-      "code": "OWNER",
-      "valueType": "TEXT",
-      "aggregationType": "NONE",
-      "optionSetCode": "OWNER_TYPE"
-    },
-    {
-      "name": "Funder",
-      "shortName": "funder",
-      "code": "FUNDER",
-      "valueType": "TEXT",
-      "aggregationType": "NONE"
-    },
-    {
-      "name": "Photo URL",
-      "shortName": "photoUrl",
-      "code": "PHOTO_URL",
-      "valueType": "URL",
-      "aggregationType": "NONE"
-    }
-  ],
-  "field_mapping": {
-    "geoCode": "GEO_CODE",
-    "waterPointType": "WATER_POINT_TYPE_ATTR",
-    "extractionType": "EXTRACTION_TYPE_ATTR",
-    "pumpType": "PUMP_TYPE_ATTR",
-    "numTaps": "NUM_TAPS",
-    "hasDepthInfo": "HAS_DEPTH_INFO",
-    "depthMetres": "DEPTH_METRES",
-    "installer": "INSTALLER",
-    "owner": "OWNER",
-    "funder": "FUNDER",
-    "photoUrl": "PHOTO_URL",
-    "location.county": "COUNTY",
-    "location.district": "DISTRICT",
-    "location.community": "COMMUNITY"
-  },
-  "org_unit_fields": ["COUNTY", "DISTRICT", "COMMUNITY"],
-  "sync_status": {
-    "pending": "SYNC_STATUS_PENDING",
-    "synced": "SYNC_STATUS_SYNCED",
-    "failed": "SYNC_STATUS_FAILED"
-  },
-  "program": {
-    "name": "Water Facility Registry",
-    "shortName": "WF Registry",
-    "code": "WF_REGISTRY"
-  },
-  "tracked_entity_type": {
-    "name": "Water Facility",
-    "shortName": "WaterFacility",
-    "code": "WATER_FACILITY"
-  }
+	"attributes": [
+		{
+			"name": "Sunbird OSID",
+			"shortName": "osid",
+			"code": "SUNBIRD_OSID",
+			"valueType": "TEXT",
+			"aggregationType": "NONE",
+			"unique": true,
+			"searchable": true,
+			"organisationUnitAttribute": true
+		}
+	],
+	"org_unit_groups": [
+		{
+			"name": "Borehole",
+			"shortName": "Borehole",
+			"code": "BOREHOLE"
+		},
+		{
+			"name": "Hand Pump",
+			"shortName": "Hand Pump",
+			"code": "HAND_PUMP"
+		},
+		{
+			"name": "Protected Well",
+			"shortName": "Protected Well",
+			"code": "PROTECTED_WELL"
+		},
+		{
+			"name": "Unprotected Well",
+			"shortName": "Unprotected Well",
+			"code": "UNPROTECTED_WELL"
+		},
+		{
+			"name": "Protected Spring",
+			"shortName": "Protected Spring",
+			"code": "PROTECTED_SPRING"
+		},
+		{
+			"name": "Unprotected Spring",
+			"shortName": "Unprotected Spring",
+			"code": "UNPROTECTED_SPRING"
+		},
+		{
+			"name": "Piped Water",
+			"shortName": "Piped Water",
+			"code": "PIPED_WATER"
+		},
+		{
+			"name": "Rainwater Harvesting",
+			"shortName": "Rainwater",
+			"code": "RAINWATER_HARVESTING"
+		},
+		{
+			"name": "Other Water Point",
+			"shortName": "Other",
+			"code": "OTHER"
+		}
+	]
 }
